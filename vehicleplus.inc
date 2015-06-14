@@ -108,7 +108,7 @@ static gVehicleAttachedObject[MAX_VEHICLES][MAX_VEHICLE_ATTACHED_OBJECTS];
 
 static Float:gVehicleFloat[MAX_VEHICLES][4 + 3 + 1];
 
-static const gVehicleNames[MAX_VEHICLE_MODELS][] =
+stock static const gVehicleNames[MAX_VEHICLE_MODELS][] =
 {
 	"Landstalker",
 	"Bravura",
@@ -321,7 +321,7 @@ static const gVehicleNames[MAX_VEHICLE_MODELS][] =
 	"Utility Trailer"
 };
 
-static const Float:gVehiclePetrolCapOffsets[MAX_VEHICLE_MODELS][3] =
+stock static const Float:gVehiclePetrolCapOffsets[MAX_VEHICLE_MODELS][3] =
 {
 	{-1.06,		-2.07,		-0.03},
 	{1.25,		-0.91,		0.05},
@@ -537,7 +537,7 @@ static const Float:gVehiclePetrolCapOffsets[MAX_VEHICLE_MODELS][3] =
 	{0.00,		0.00,		0.00}
 };
 
-static const gVehicleColors[MAX_VEHICLE_MODELS][] =
+stock static const gVehicleColors[MAX_VEHICLE_MODELS][] =
 {
     {16, 004, 001, 123, 001, 113, 001, 101, 001, 075, 001, 062, 001, 040, 001, 036, 001},
     {16, 041, 041, 047, 047, 052, 052, 066, 066, 074, 074, 087, 087, 091, 091, 113, 113},
@@ -753,7 +753,7 @@ static const gVehicleColors[MAX_VEHICLE_MODELS][] =
     {0,  000, 000}
 };
 
-static const gVehicleTopSpeed[MAX_VEHICLE_MODELS] =
+stock static const gVehicleTopSpeed[MAX_VEHICLE_MODELS] =
 {
 	157,
 	147,
@@ -1415,7 +1415,9 @@ stock Vehicle_ChangeVehicleColor(vehicleid, color1, color2)
 #endif
 #define ChangeVehicleColor Vehicle_ChangeVehicleColor
 
-#define SetVehicleColor ChangeVehicleColor
+#if ! defined SetVehicleColor
+	#define SetVehicleColor ChangeVehicleColor
+#endif
 
 stock GetVehicleColor(vehicleid, &color1, &color2)
 {
@@ -1434,7 +1436,7 @@ stock Vehicle_ChangeVehiclePaintjob(vehicleid, paintjobid)
 		{
 			new colors[2];
 			GetVehicleColor(vehicleid, colors[0], colors[1]);
-			SetVehicleColor(vehicleid, colors[0], colors[1]);
+			ChangeVehicleColor(vehicleid, colors[0], colors[1]);
 		}
 		return true;
 	}
