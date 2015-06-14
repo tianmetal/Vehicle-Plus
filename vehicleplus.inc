@@ -1415,6 +1415,8 @@ stock Vehicle_ChangeVehicleColor(vehicleid, color1, color2)
 #endif
 #define ChangeVehicleColor Vehicle_ChangeVehicleColor
 
+#define SetVehicleColor ChangeVehicleColor
+
 stock GetVehicleColor(vehicleid, &color1, &color2)
 {
 	color1 = Vehicle_GetPropertyInt(vehicleid, v_color<0>);
