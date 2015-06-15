@@ -68,7 +68,7 @@ public OnPlayerEditVehicle(playerid, vehicleid, response, Float:fX, Float:fY, Fl
 public OnPlayerReachSpeedCapLimit(playerid, vehicleid, Float:speed)
 public OnVehicleBombActivate(vehicleid)
 public OnVehicleBombDeactivate(vehicleid)
-public forward OnVehicleBombExplode(vehicleid)
+public OnVehicleBombExplode(vehicleid)
 public OnVehiclePosChange(vehicleid, Float:newx, Float:newy, Float:newz, Float:newrotation, Float:oldx, Float:oldy, Float:oldz, Float:oldrotation)
 public OnVehicleVelocityChange(vehicleid, Float:newx, Float:newy, Float:newz, Float:oldx, Float:oldy, Float:oldz)
 public OnVehicleHealthChange(vehicleid, Float:newhealth, Float:oldhealth)
@@ -1967,15 +1967,15 @@ stock IsVehicleOccupied(vehicleid)
 
 stock GetVehicleDriverID(vehicleid)
 {
-	for(new i; i < MAX_PLAYERS; i++)
+	for(new i; i <= GetPlayerPoolSize(); i++)
     {
-        if(	IsPlayerConnected(i) &&
-			GetPlayerVehicleID(i) == vehicleid &&
+        if(	GetPlayerVehicleID(i) == vehicleid &&
 			GetPlayerVehicleSeat(i) == 0)
 		{
-			return true;
+			return i
         }
     }
+	return INVALID_PLAYER_ID;
 }
 
 stock EditVehicle(playerid, vehicleid)
