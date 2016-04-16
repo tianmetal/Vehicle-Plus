@@ -1,99 +1,79 @@
-/********************************************************************************************************************************/
-//
-//	Vehicles Plus Include (vehicleplus.inc)
-//	* Add new features to your vehicles system and have the missing or actually the correct word is needed vehicle functions
-//	* Gives you advantage over ordinary vehicle manager includes, this is compatiable with other scripts (using property function)
-//	* Now EditVehicle avalaible with this include
-//
-// 	Author: (creator)
-//	* Gammix
-//
-//	Contributors:
-//	* Admigo - a_OPSVP include (offsets of vehicle bodyparts)
-//	* Emmet_ - random car colors and top speed array
-//
-//	(c) Copyright 2015
-//  	* This file is provided as is (no warranties).
-/********************************************************************************************************************************/
-//FUNCTIONS:
-//	native CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, color1 = -1, color2 = -1, respawn_delay = -1, addsiren = 0, worldid = 0, interiorid = 0, bool:unoccupied_damage = false);
-//	native GetVehicleInterior(vehicleid);
-//	native GetVehicleColor(vehicleid, &color1, &color2);
-//	native GetVehiclePaintjob(vehicleid);
-//	native RemoveVehiclePaintjob(vehicleid);
-//	native SetVehicleHorn(vehicleid, soundid);
-//	native GetVehicleHorn(vehicleid);
-//	native RestoreVehicleHorn(vehicleid);
-//	native ToggleVehicleDamageUpdate(vehicleid, type, bool:toggle);
-//	native IsVehicleDamageToggled(vehicleid, type);
-//	native UpdateVehicleDamageStatusEx(vehicleid, type, update);
-//	native GetVehicleDamageStatusEx(vehicleid, type);
-//	native IsVehicleOccupied(vehicleid);
-//	native GetVehicleDriverID(vehicleid);
-//	native EditVehicle(playerid, vehicleid);
-//	native IsValidVehicle(vehicleid);
-//	native GetVehicleName(vehicleid, string[], len = sizeof(string));
-//	native GetVehicleModelName(modelid, string[], len = sizeof(string));
-//	native SetVehicleParams(vehicleid, type, set);
-//	native GetVehicleParams(vehicleid, type);
-//	native Float:GetVehicleSpeed(vehicleid, bool:kmh = true, Float:velx = 0.0, Float:vely = 0.0, Float:velz = 0.0);
-//	native IsObjectAttachedToVehicle(objectid, vehicleid);
-//	native GetVehicleSlotAttachedObject(vehicleid, slot);
-//	native TeleportVehicle(vehicleid, Float:x, Float:y, Float:z, Float:rotation, worldid = -1, interiorid = -1);
-//	native SetVehicleSpeedCap(vehicleid, Float:maxspeed);
-//	native Float:GetVehicleSpeedCap(vehicleid);
-//	native DisableVehicleSpeedCap(vehicleid);
-//	native GetVehicleTopSpeed(vehicleid);
-//	native GetVehicleModelTopSpeed(modelid);
-//	native SetVehicleSpawnInfo(vehicleid, Float:x, Float:y, Float:z, Float:rotation, worldid, interiorid);
-//	native GetVehicleSpawnInfo(vehicleid, &Float:x, &Float:y, &Float:z, &Float:rotation, &worldid, &interiorid);
-//	native ToggleUnoccupiedVehicleDamage(vehicleid, bool:toggle);
-//	native IsUnoccupiedDamageToggled(vehicleid);
-//	native ToggleVehiclePetrolCapDestroy(vehicleid, bool:toggle);
-//	native IsPetrolCapDestroyToggled(vehicleid);
-//	native SetVehicleBomb(vehicleid, time = 1000);
-//	native GetVehicleBomb(vehicleid);
-//	native RemoveVehicleBomb(vehicleid);
-//	native IsVehicleBombed(vehicleid);
-//	native IsVehicleBombActivated(vehicleid);
-//	native ToggleVehicleSticky(vehicleid, bool:toggle);
-//	native IsVehicleSticky(vehicleid);
-//	native CountAllVehicles();
-//	native DestroyAllVehicles();
-//
-//CALLBACKS:
-//	public OnPlayerShotVehicle(playerid, vehicleid, weaponid, Float:amount, bodypart)
-//	public OnPlayerEditVehicle(playerid, vehicleid, response, Float:fX, Float:fY, Float:fZ, Float:fRotZ)
-//	public OnPlayerReachSpeedCapLimit(playerid, vehicleid, Float:speed)
-//	public OnVehicleBombActivate(vehicleid)
-//	public OnVehicleBombDeactivate(vehicleid)
-//	public OnVehicleBombExplode(vehicleid)
-//	public OnVehiclePosChange(vehicleid, Float:newx, Float:newy, Float:newz, Float:newrotation, Float:oldx, Float:oldy, Float:oldz, Float:oldrotation)
-//	public OnVehicleVelocityChange(vehicleid, Float:newx, Float:newy, Float:newz, Float:oldx, Float:oldy, Float:oldz)
-//	public OnVehicleHealthChange(vehicleid, Float:newhealth, Float:oldhealth)
-/********************************************************************************************************************************/
-#define ToggleUnoccupiedVehicleDamage(%0,%1) Vehicle_SetPropertyInt(%0, v_spawn_uno_damage, !!(_:%1))
-#define IsUnoccupiedDamageToggled(%0) Vehicle_GetPropertyInt(%0, v_spawn_uno_damage)
-#define ToggleVehiclePetrolCapDestroy(%0,%1) Vehicle_SetPropertyInt(%0, v_petrolcap, !!(_:%1))
-#define IsPetrolCapDestroyToggled(%0) Vehicle_GetPropertyInt(%0, v_petrolcap)
+/*
+	Vehicles Plus Include (vehicleplus.inc)
+	* Add new features to your vehicles system and have the missing or actually the correct word is needed vehicle functions
+	* Gives you advantage over ordinary vehicle manager includes, this is compatiable with other scripts (using property function)
+	* Now EditVehicle avalaible with this include
 
-#define ToggleVehicleSticky(%0,%1) Vehicle_SetPropertyInt(%0, v_sticky, !!(_:%1))
-#define IsVehicleSticky(%0) Vehicle_GetPropertyInt(%0, v_sticky)
+ 	Author: (creator)
+	* Gammix
 
-#define GetVehicleInterior(%0) Vehicle_GetPropertyInt(%0, v_interior)
-#define IsVehicleDamageToggled(%0,%1) Vehicle_GetPropertyInt(%0, v_damage<%1>)
+	Contributors:
+	* Admigo - a_OPSVP include (offsets of vehicle bodyparts)
+	* Emmet_ - random car colors and top speed array
 
-#define SetVehicleSpeedCap(%0,%1) Vehicle_SetPropertyFloat(%0, v_speedcap,%1);
-#define GetVehicleSpeedCap(%0) Vehicle_GetPropertyFloat(%0, v_speedcap)
-#define DisableVehicleSpeedCap(%0) SetVehicleSpeedCap(%0, 0)
+	(c) Copyright 2015
+  	* This file is provided as is (no warranties).
+*/
 
-#define GetVehicleTopSpeed(%0) gVehicleTopSpeed[GetVehicleModel(vehicleid) - 400]
-#define GetVehicleModelTopSpeed(%0) gVehicleTopSpeed[modelid - 400]
+/*
+FUNCTIONS:
+native CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, color1 = -1, color2 = -1, respawn_delay = -1, addsiren = 0, worldid = 0, interiorid = 0, bool:unoccupied_damage = false);
+native GetVehicleInterior(vehicleid);
+native GetVehicleColor(vehicleid, &color1, &color2);
+native GetVehiclePaintjob(vehicleid);
+native RemoveVehiclePaintjob(vehicleid);
+native SetVehicleHorn(vehicleid, soundid);
+native GetVehicleHorn(vehicleid);
+native RestoreVehicleHorn(vehicleid);
+native ToggleVehicleDamageUpdate(vehicleid, type, bool:toggle);
+native IsVehicleDamageToggled(vehicleid, type);
+native UpdateVehicleDamageStatusEx(vehicleid, type, update);
+native GetVehicleDamageStatusEx(vehicleid, type);
+native IsVehicleOccupied(vehicleid);
+native GetVehicleDriverID(vehicleid);
+native EditVehicle(playerid, vehicleid);
+native IsValidVehicle(vehicleid);
+native GetVehicleName(vehicleid, string[], len = sizeof(string));
+native GetVehicleModelName(modelid, string[], len = sizeof(string));
+native SetVehicleParams(vehicleid, type, set);
+native GetVehicleParams(vehicleid, type);
+native Float:GetVehicleSpeed(vehicleid, bool:kmh = true, Float:velx = 0.0, Float:vely = 0.0, Float:velz = 0.0);
+native IsObjectAttachedToVehicle(objectid, vehicleid);
+native GetVehicleSlotAttachedObject(vehicleid, slot);
+native TeleportVehicle(vehicleid, Float:x, Float:y, Float:z, Float:rotation, worldid = -1, interiorid = -1);
+native SetVehicleSpeedCap(vehicleid, Float:maxspeed);
+native Float:GetVehicleSpeedCap(vehicleid);
+native DisableVehicleSpeedCap(vehicleid);
+native GetVehicleTopSpeed(vehicleid);
+native GetVehicleModelTopSpeed(modelid);
+native SetVehicleSpawnInfo(vehicleid, Float:x, Float:y, Float:z, Float:rotation, worldid, interiorid);
+native GetVehicleSpawnInfo(vehicleid, &Float:x, &Float:y, &Float:z, &Float:rotation, &worldid, &interiorid);
+native ToggleUnoccupiedVehicleDamage(vehicleid, bool:toggle);
+native IsUnoccupiedDamageToggled(vehicleid);
+native ToggleVehiclePetrolCapDestroy(vehicleid, bool:toggle);
+native IsPetrolCapDestroyToggled(vehicleid);
+native SetVehicleBomb(vehicleid, time = 1000);
+native GetVehicleBomb(vehicleid);
+native RemoveVehicleBomb(vehicleid);
+native IsVehicleBombed(vehicleid);
+native IsVehicleBombActivated(vehicleid);
+native ToggleVehicleSticky(vehicleid, bool:toggle);
+native IsVehicleSticky(vehicleid);
+native CountAllVehicles();
+native DestroyAllVehicles();
 
-#define GetVehicleBomb(%0) Vehicle_GetPropertyInt(%0, v_bomb)
-#define RemoveVehicleBomb(%0) SetVehicleBomb(%0, 0);
-#define IsVehicleBombed(vehicleid) (!!(GetVehicleBomb(vehicleid)))
-/********************************************************************************************************************************/
+CALLBACKS:
+public OnPlayerShotVehicle(playerid, vehicleid, weaponid, Float:amount, bodypart)
+public OnPlayerEditVehicle(playerid, vehicleid, response, Float:fX, Float:fY, Float:fZ, Float:fRotZ)
+public OnPlayerReachSpeedCapLimit(playerid, vehicleid, Float:speed)
+public OnVehicleBombActivate(vehicleid)
+public OnVehicleBombDeactivate(vehicleid)
+public OnVehicleBombExplode(vehicleid)
+public OnVehiclePosChange(vehicleid, Float:newx, Float:newy, Float:newz, Float:newrotation, Float:oldx, Float:oldy, Float:oldz, Float:oldrotation)
+public OnVehicleVelocityChange(vehicleid, Float:newx, Float:newy, Float:newz, Float:oldx, Float:oldy, Float:oldz)
+public OnVehicleHealthChange(vehicleid, Float:newhealth, Float:oldhealth)
+*/
+
 #define VEHICLE_DAMAGE_PANELS       			0
 #define VEHICLE_DAMAGE_DOORS        			1
 #define VEHICLE_DAMAGE_LIGHTS					2
@@ -114,9 +94,243 @@
 #define VEHICLE_PARAMS_BOOT       				5
 #define VEHICLE_PARAMS_OBJECTIVE   				6
 
+#if ! defined MAX_VEHICLE_ATTACHED_OBJECTS
+	#define MAX_VEHICLE_ATTACHED_OBJECTS    	30
+#endif
+
 #define MAX_VEHICLE_MODELS              		212
 
-#define VEHICLE_UPDATE_INTERVAL				250
+#define VEHICLE_UPDATE_INTERVAL					250
+
+static gPlayerEdit[MAX_PLAYERS] = INVALID_VEHICLE_ID;
+static gVehicleAttachedObject[MAX_VEHICLES][MAX_VEHICLE_ATTACHED_OBJECTS];
+static Float:gVehicleFloat[MAX_VEHICLES][4 + 3 + 1];
+static gVehicleDriver[MAX_VEHICLES];
+
+enum E_VEHICLE_INFO
+{
+	Name[18],
+	TopSpeed,
+	Float:PetrolCapOffset[3],
+	Color[33]
+	
+}
+
+static const gVehicleInfo[MAX_VEHICLE_MODELS][E_VEHICLE_INFO] =
+{
+	{"Landstalker",157,{-1.06,-2.07,-0.03},{16,4,1,123,1,113,1,11,1,75,1,62,1,4,1,36,1}},
+	{"Bravura",147,{1.25,-0.91,0.05},{16,41,41,47,47,52,52,66,66,74,74,87,87,91,91,113,113}},
+	{"Buffalo",186,{1.11,-1.92,0.17},{16,1,1,13,13,22,22,3,3,39,39,9,9,98,98,11,11}},
+	{"Linerunner",110,{-1.46,0.02,-0.66},{16,36,1,37,1,3,1,28,1,25,1,4,1,11,1,113,1}},
+	{"Perrenial",133,{-1.03,-2.37,0.06},{16,113,39,119,5,123,92,19,1,11,11,95,15,83,11,66,25}},
+	{"Sentinel",164,{-0.86,-2.16,-0.08},{16,11,1,24,1,36,1,4,1,75,1,91,1,123,1,4,1}},
+	{"Dumper",110,{0.00,0.00,0.00},{2,1,1}},
+	{"Firetruck",148,{-1.07,-3.74,-0.42},{2,3,1}},
+	{"Trashmaster",100,{-1.46,1.24,-0.57},{2,26,26}},
+	{"Stretch",158,{-1.04,-2.82,0.14},{2,1,1}},
+	{"Manana",129,{-0.96,-1.66,0.23},{16,4,1,9,1,1,1,25,1,36,1,4,1,45,1,84,1}},
+	{"Infernus",221,{1.06,-2.10,0.09},{16,12,1,64,1,123,1,116,1,112,1,16,1,8,1,75,1}},
+	{"Voodoo",168,{0.00,0.00,0.00},{16,9,1,1,8,11,1,25,8,27,1,29,8,3,1,37,8}},
+	{"Pony",110,{-0.46,0.53,-0.79},{16,87,1,88,1,91,1,15,1,19,1,119,1,4,1,25,1}},
+	{"Mule",105,{-0.66,-0.71,-0.70},{16,25,1,28,1,43,1,67,1,72,1,9,1,95,1,24,1}},
+	{"Cheetah",192,{-1.07,-2.06,0.05},{16,2,1,25,1,36,1,4,1,62,1,75,1,92,1,0,1}},
+	{"Ambulance",154,{-1.16,-2.72,-0.21},{2,1,3}},
+	{"Leviathan",270,{0.00,0.00,0.00},{0,0,0}},
+	{"Moonbeam",115,{-1.24,-1.76,0.03},{16,119,119,117,227,114,114,18,18,95,95,81,81,61,61,41,41}},
+	{"Esperanto",149,{-1.09,-1.99,0.06},{16,45,75,47,76,33,75,13,76,54,75,69,76,59,75,87,76}},
+	{"Taxi",145,{-1.03,-2.14,0.08},{2,6,1}},
+	{"Washington",154,{-1.02,-2.43,-0.14},{16,4,1,13,1,25,1,3,1,36,1,4,1,75,1,95,1}},
+	{"Bobcat",140,{-0.93,-0.41,-0.19},{14,96,25,97,25,11,25,111,31,113,36,83,57,67,59}},
+	{"Mr Whoopee",99,{-1.13,-1.90,-0.28},{12,1,16,1,56,1,17,1,53,1,5,1,35}},
+	{"BF Injection",135,{-1.11,-0.54,-0.10},{16,1,0,2,2,3,2,3,6,6,16,15,3,24,53,35,61}},
+	{"Hunter",270,{0.00,0.00,0.00},{2,43,0}},
+	{"Premier",173,{-1.00,-2.16,0.06},{16,37,37,42,42,53,53,62,62,7,7,1,1,11,11,15,15}},
+	{"Enforcer",165,{-1.27,-3.18,-0.18},{2,0,1}},
+	{"Securicar",157,{-1.01,-2.65,-0.56},{2,4,75}},
+	{"Banshee",201,{0.00,0.00,0.00},{16,12,12,13,13,14,14,1,2,2,1,1,3,3,1,1,1}},
+	{"Predator",190,{0.00,0.00,0.00},{2,46,26}},
+	{"Bus",130,{-1.32,-5.47,-0.12},{16,71,59,75,59,92,72,47,74,55,83,59,83,71,87,82,87}},
+	{"Rhino",94,{0.00,0.00,0.00},{2,43,0}},
+	{"Barracks",110,{-1.51,0.15,-0.67},{2,43,0}},
+	{"Hotknife",167,{0.00,0.00,0.00},{14,1,1,12,12,2,2,6,6,4,4,46,46,53,53}},
+	{"Trailer 1",0,{0.00,0.00,0.00},{2,1,1}},
+	{"Previon",149,{-1.02,-1.81,0.16},{14,83,1,87,1,92,1,95,1,19,1,119,45,11,1}},
+	{"Coach",158,{-1.24,-4.98,-0.51},{16,54,7,79,7,87,7,95,16,98,2,15,2,123,2,125,21}},
+	{"Cabbie",142,{-1.06,-1.93,-0.00},{2,6,76}},
+	{"Stallion",168,{-1.07,-1.50,0.07},{16,57,8,8,17,43,21,54,38,67,8,37,78,65,79,25,78}},
+	{"Rumpo",136,{-0.89,-0.47,-0.46},{16,34,34,32,32,2,2,11,11,66,66,84,84,118,118,121,121}},
+	{"RC Bandit",145,{0.00,0.00,0.00},{16,2,96,79,42,82,54,67,86,126,96,7,96,11,54,67,98}},
+	{"Romero",139,{-1.17,-2.20,0.08},{16,0,0,11,15,25,19,36,0,4,36,75,36,0,36,0,19}},
+	{"Packer",126,{-1.24,1.25,-0.91},{16,4,1,2,1,24,1,25,1,36,1,4,1,54,1,84,1}},
+	{"Monster",110,{0.00,0.00,0.00},{12,32,36,32,42,32,53,32,66,32,14,32,32}},
+	{"Admiral",164,{-1.07,-1.95,0.13},{16,34,34,35,35,37,37,39,39,41,41,43,43,45,45,47,47}},
+	{"Squalo",270,{0.00,0.00,0.00},{32,0,0,0,1,1,5,1,1,3,3,0,1,1,22,1,1,1,35,1,1,1,44,1,1,1,53,1,1,1,57,1,1}},
+	{"Seasparrow",270,{0.00,0.00,0.00},{2,75,2}},
+	{"Pizzaboy",111,{0.00,0.00,0.00},{2,1,3}},
+	{"Tram",0,{0.00,0.00,0.00},{2,1,74}},
+	{"Trailer 2",0,{0.00,0.00,0.00},{2,1,1}},
+	{"Turismo",193,{1.08,-1.21,-0.03},{16,123,123,125,125,36,36,16,16,18,18,46,46,61,61,75,75}},
+	{"Speeder",270,{0.00,0.00,0.00},{16,1,3,1,5,1,16,1,22,1,35,1,44,1,53,1,57}},
+	{"Reefer",60,{0.00,0.00,0.00},{2,56,56}},
+	{"Tropic",135,{0.00,0.00,0.00},{2,26,26}},
+	{"Flatbed",157,{-1.52,0.00,-0.74},{16,84,15,84,58,84,31,32,74,43,31,1,31,77,31,32,74}},
+	{"Yankee",106,{0.73,-0.05,-0.59},{16,84,63,91,63,12,65,15,72,11,93,121,93,12,95,23,1}},
+	{"Caddy",95,{0.00,0.00,0.00},{16,58,1,2,1,63,1,18,1,32,1,45,1,13,1,34,1}},
+	{"Solair",157,{-1.11,-2.04,-0.09},{16,91,1,11,1,19,1,113,1,4,1,25,1,3,1,36,1}},
+	{"Berkley's RC Van",136,{-0.97,-2.30,0.21},{16,26,26,28,28,44,44,51,51,57,57,72,72,16,16,112,112}},
+	{"Skimmer",270,{0.00,0.00,0.00},{16,1,3,1,9,1,18,1,3,17,23,46,23,46,32,57,34}},
+	{"PCJ-600",160,{0.00,0.00,0.00},{16,36,1,37,1,43,1,53,1,61,1,75,1,79,1,88,1}},
+	{"Faggio",111,{0.00,0.00,0.00},{16,12,12,13,13,14,14,1,2,2,1,1,3,3,1,1,1}},
+	{"Freeway",142,{-0.25,0.20,-0.17},{16,79,79,84,84,7,7,11,11,19,19,22,22,36,36,53,53}},
+	{"RC Baron",145,{0.00,0.00,0.00},{2,14,75}},
+	{"RC Raider",145,{0.00,0.00,0.00},{2,14,75}},
+	{"Glendale",147,{0.00,0.00,0.00},{16,67,76,68,76,78,76,2,76,16,76,18,76,25,76,45,88}},
+	{"Oceanic",140,{-0.92,-2.30,0.08},{16,51,1,58,8,6,1,68,8,2,1,13,8,22,1,36,8}},
+	{"Sanchez",144,{-0.07,0.17,0.69},{8,6,6,46,46,53,53,3,3}},
+	{"Sparrow",270,{0.00,0.00,0.00},{0,0,0}},
+	{"Patriot",157,{-1.17,-2.37,0.24},{2,43,0}},
+	{"Quad",110,{0.00,0.00,0.00},{16,12,117,13,111,12,114,74,91,12,112,74,83,12,113,66,71}},
+	{"Coastguard",190,{0.00,0.00,0.00},{4,56,15,56,53}},
+	{"Dinghy",190,{0.00,0.00,0.00},{4,56,15,56,53}},
+	{"Hermes",149,{0.00,0.00,0.00},{16,97,1,81,1,15,1,11,1,91,1,74,1,84,1,83,1}},
+	{"Sabre",173,{-1.09,-1.60,0.13},{16,2,39,9,39,17,1,21,1,33,0,37,0,41,29,56,29}},
+	{"Rustler",270,{0.00,0.00,0.00},{16,6,7,7,6,1,6,89,91,119,117,13,12,77,87,71,77}},
+	{"ZR-350",186,{-1.03,-1.52,0.15},{16,92,1,94,1,11,1,121,1,0,1,22,1,36,1,75,1}},
+	{"Walton",117,{1.01,-0.33,0.23},{16,72,1,66,1,59,1,45,1,4,1,39,1,35,1,2,1}},
+	{"Regina",140,{-1.09,-1.98,0.09},{16,27,36,59,36,6,35,55,41,54,31,49,23,45,32,4,29}},
+	{"Comet",184,{-1.12,-0.88,0.14},{14,73,45,12,12,2,2,6,6,4,4,46,46,53,53}},
+	{"BMX",73,{0.00,0.00,0.00},{16,1,1,3,3,6,6,46,46,65,9,14,1,12,9,26,1}},
+	{"Burrito",156,{1.03,-2.26,0.00},{16,41,41,48,48,52,52,64,64,71,71,85,85,1,1,62,62}},
+	{"Camper",122,{0.80,-2.50,-0.05},{32,1,31,1,0,1,31,1,0,1,2,3,0,1,5,0,0,0,6,3,0,3,6,3,0,16,0,8,0,17,0,12,0}},
+	{"Marquis",190,{0.00,0.00,0.00},{8,12,35,5,32,4,26,66,36}},
+	{"Baggage",99,{-0.88,0.71,0.03},{14,1,73,1,74,1,75,1,76,1,77,1,78,1,79}},
+	{"Dozer",64,{-0.66,-3.17,0.58},{2,1,1}},
+	{"Maverick",270,{0.00,0.00,0.00},{16,26,14,29,42,26,57,54,29,26,3,3,29,12,39,74,35}},
+	{"News Chopper",270,{0.00,0.00,0.00},{4,2,26,2,29}},
+	{"Rancher",139,{1.22,-0.74,0.02},{12,13,118,14,123,12,123,112,12,84,11,76,12}},
+	{"FBI Rancher",157,{0.00,0.00,0.00},{2,0,0}},
+	{"Virgo",149,{-1.05,-2.18,0.02},{12,4,65,71,72,52,66,64,72,3,72,6,72}},
+	{"Greenwood",140,{-1.07,-2.09,0.17},{16,3,26,77,26,81,27,24,55,28,56,49,59,52,69,71,17}},
+	{"Jetmax",270,{0.00,0.00,0.00},{2,36,13}},
+	{"Hotring",214,{-1.00,-2.20,0.14},{16,7,94,36,88,51,75,53,75,58,67,75,67,75,61,79,62}},
+	{"Sandking",176,{1.16,-1.91,-0.11},{16,123,124,119,122,118,117,116,115,114,18,11,16,88,99,5,6}},
+	{"Blista Compact",162,{1.08,-1.83,0.15},{16,74,72,66,72,53,56,37,19,22,22,2,2,9,14,0,0}},
+	{"Police Maverick",270,{0.00,0.00,0.00},{2,0,1}},
+	{"Boxville",108,{-1.21,-0.01,0.09},{16,11,123,13,12,2,117,24,112,27,17,36,15,37,17,43,93}},
+	{"Benson",123,{-1.19,-1.09,-0.31},{16,19,25,19,32,112,32,1,32,3,44,32,52,84,66,84,69}},
+	{"Mesa",140,{-0.91,-1.70,-0.06},{16,75,84,4,84,4,11,28,119,25,119,21,119,13,119,4,119}},
+	{"RC Goblin",145,{0.00,0.00,0.00},{2,14,75}},
+	{"Hotring Racer A",216,{-0.96,-1.88,0.13},{16,83,66,87,74,87,75,98,83,11,1,13,11,117,116,123,36}},
+	{"Hotring Racer B",216,{-0.98,-2.03,0.04},{16,36,117,36,13,42,3,42,33,54,36,75,79,92,11,98,19}},
+	{"Bloodring Banger",173,{-1.14,-1.82,0.13},{16,51,39,57,38,45,29,34,9,65,9,14,1,12,9,26,1}},
+	{"Rancher",140,{1.22,-0.74,0.00},{12,13,118,14,123,12,123,112,12,84,11,76,12}},
+	{"Super GT",179,{0.96,-1.11,-0.11},{1,3,3,6,6,7,7,52,52,76,76}},
+	{"Elegant",166,{-1.08,-2.30,0.08},{16,37,37,42,42,53,53,62,62,7,7,1,1,11,11,15,15}},
+	{"Journey",108,{-1.35,-3.05,-0.67},{2,1,1}},
+	{"Bike",79,{0.00,0.00,0.00},{16,7,1,74,1,61,1,16,1,25,1,3,1,36,1,53,1}},
+	{"Mountain Bike",101,{0.00,0.00,0.00},{16,43,43,46,46,39,39,28,28,16,16,6,6,5,5,2,2}},
+	{"Beagle",270,{0.00,0.00,0.00},{16,3,9,4,9,7,68,8,66,12,6,27,97,34,51,37,51}},
+	{"Cropdust",270,{0.00,0.00,0.00},{16,17,39,15,123,32,112,45,88,52,71,57,67,61,96,96,96}},
+	{"Stunt",270,{0.00,0.00,0.00},{16,38,51,21,36,21,34,3,34,54,34,55,2,48,18,51,6}},
+	{"Tanker",120,{-1.50,-0.88,-0.24},{16,1,1,25,1,28,1,36,1,4,1,54,1,75,1,113,1}},
+	{"Roadtrain",142,{-1.08,0.51,-1.43},{16,13,76,24,77,63,78,42,76,54,77,39,78,11,76,62,77}},
+	{"Nebula",157,{-1.13,-2.44,-0.01},{16,116,1,119,1,122,1,4,1,9,1,24,1,27,1,36,1}},
+	{"Majestic",157,{-1.11,-1.95,0.08},{16,37,36,36,36,4,36,43,41,47,41,51,72,54,75,55,84}},
+	{"Buccaneer",164,{1.09,-2.19,-0.08},{16,2,39,9,39,17,1,21,1,33,0,37,0,41,29,56,29}},
+	{"Shamal",270,{0.00,0.00,0.00},{2,1,1}},
+	{"Hydra",270,{0.00,0.00,0.00},{0,0,0}},
+	{"FCR-900",160,{-0.17,0.13,0.52},{16,74,74,75,13,87,118,92,3,115,118,25,118,36,0,118,118}},
+	{"NRG-500",176,{-0.14,0.18,0.53},{16,3,3,3,8,6,25,7,79,8,82,36,15,39,16,51,118}},
+	{"HPV1000",151,{-0.18,0.24,0.49},{0,0,0}},
+	{"Cement Truck",130,{1.24,0.46,-1.06},{32,6,24,23,0,61,27,123,0,65,31,31,0,61,61,3,0,81,35,23,0,62,61,62,0,83,66,64,0,83,64,64,0}},
+	{"Tow Truck",160,{-1.31,-0.50,-0.07},{14,1,1,17,2,18,2,22,3,36,43,44,51,52,54}},
+	{"Fortune",158,{-0.94,-1.94,0.05},{16,2,39,9,39,17,1,21,1,33,0,37,0,41,29,56,29}},
+	{"Cadrona",149,{-1.13,-1.70,0.16},{16,52,1,53,1,66,1,75,1,76,1,81,1,95,1,19,1}},
+	{"FBI Truck",176,{-0.51,-2.07,0.01},{0,0,0}},
+	{"Willard",149,{-1.15,-2.20,0.22},{16,37,37,42,42,53,53,62,62,7,7,1,1,11,11,15,15}},
+	{"Forklift",60,{0.00,0.00,0.00},{16,11,1,111,1,112,1,114,1,119,1,122,1,4,1,13,1}},
+	{"Tractor",70,{0.00,0.00,0.00},{12,2,35,36,2,51,53,91,2,11,22,4,35}},
+	{"Combine",110,{0.00,-2.43,-0.91},{0,0,0}},
+	{"Feltzer",167,{0.91,-1.97,0.11},{16,73,1,74,1,75,1,77,1,79,1,83,1,84,1,91,1}},
+	{"Remington",168,{-1.01,-0.83,-0.20},{16,37,37,42,42,53,53,62,62,7,7,1,1,11,11,15,15}},
+	{"Slamvan",158,{-1.13,-0.55,0.28},{16,3,1,28,1,31,1,55,1,66,1,97,1,123,1,118,1}},
+	{"Blade",173,{-0.98,-1.69,0.06},{16,9,1,12,1,26,96,3,96,32,1,37,1,57,96,71,96}},
+	{"Freight",0,{0.00,0.00,0.00},{2,1,1}},
+	{"Streak",0,{0.00,0.00,0.00},{2,1,1}},
+	{"Vortex",270,{0.00,0.00,0.00},{14,96,67,86,7,79,74,7,86,61,98,75,75,75,91}},
+	{"Vincent",149,{-1.23,-2.51,-0.03},{16,37,37,42,42,53,53,62,62,7,7,1,1,11,11,15,15}},
+	{"Bullet",203,{0.00,0.00,0.00},{16,51,1,58,8,6,1,68,8,2,1,13,8,22,1,36,8}},
+	{"Clover",164,{-0.97,-1.92,0.31},{16,13,118,24,118,31,93,32,92,45,92,113,92,119,113,122,113}},
+	{"Sadler",151,{-0.96,-0.94,-0.01},{16,76,8,32,8,43,8,67,8,11,11,8,9,2,2,83,13}},
+	{"Firetruck LA",150,{-1.15,2.04,0.32},{2,3,1}},
+	{"Hustler",147,{0.00,0.00,0.00},{16,5,1,47,1,44,96,4,96,39,1,3,1,28,96,9,96}},
+	{"Intruder",149,{1.22,-1.99,0.16},{16,62,37,78,38,2,62,3,87,2,78,113,78,119,62,7,78}},
+	{"Primo",142,{-1.09,-2.00,0.13},{16,122,1,123,1,125,1,1,1,24,1,37,1,55,1,66,1}},
+	{"Cargobob",270,{0.00,0.00,0.00},{2,1,1}},
+	{"Tampa",153,{-0.89,-1.14,0.18},{16,74,39,72,39,75,39,79,39,83,36,84,36,89,35,91,35}},
+	{"Sunrise",145,{-1.10,-2.40,-0.02},{16,37,37,42,42,53,53,62,62,7,7,1,1,11,11,15,15}},
+	{"Merit",157,{-1.03,-2.66,0.07},{16,67,1,72,1,75,1,83,1,91,1,11,1,19,1,2,1}},
+	{"Utility",121,{-0.95,-0.94,0.45},{6,56,56,49,49,26,124}},
+	{"Nevada",270,{0.00,0.00,0.00},{16,38,9,55,23,61,74,71,87,91,87,98,114,12,119,111,3}},
+	{"Yosemite",144,{1.27,-2.37,0.13},{16,53,32,15,32,45,32,34,3,65,32,14,32,12,32,43,32}},
+	{"Windsor",158,{-0.80,-1.47,0.17},{16,51,1,58,1,6,1,68,1,2,1,13,1,22,1,36,1}},
+	{"Monster A",113,{0.00,0.00,0.00},{2,1,1}},
+	{"Monster B",113,{0.00,0.00,0.00},{2,1,1}},
+	{"Uranus",156,{-0.84,-1.92,0.23},{16,112,1,116,1,117,1,24,1,3,1,35,1,36,1,4,1}},
+	{"Jester",178,{-1.01,-1.76,0.25},{16,51,1,58,8,6,1,68,8,2,1,13,8,22,1,36,8}},
+	{"Sultan",169,{0.98,-1.83,0.20},{16,52,39,9,39,17,1,21,1,33,0,37,0,41,29,56,29}},
+	{"Stratum",154,{1.13,-2.28,0.11},{16,57,8,8,17,43,21,54,38,67,8,37,78,65,79,25,78}},
+	{"Elegy",178,{0.93,-0.71,0.05},{16,36,1,35,1,17,1,11,1,116,1,113,1,11,1,92,1}},
+	{"Raindance",270,{0.00,0.00,0.00},{2,1,6}},
+	{"RC Tiger",145,{0.00,0.00,0.00},{0,0,0}},
+	{"Flash",165,{0.95,-0.86,0.09},{16,37,37,42,42,53,53,62,62,7,7,1,1,11,11,15,15}},
+	{"Tahoma",160,{1.18,-2.26,0.06},{16,19,1,3,8,95,1,84,8,83,1,72,8,71,1,52,8}},
+	{"Savanna",173,{0.00,0.00,0.00},{16,97,96,88,64,9,96,93,64,97,96,99,81,12,114,114,1}},
+	{"Bandito",146,{0.00,0.00,0.00},{16,2,39,9,39,17,1,21,1,33,0,37,0,41,29,56,29}},
+	{"Freight Flat",0,{0.00,0.00,0.00},{0,0,0}},
+	{"Streak Carriage",0,{0.00,0.00,0.00},{2,1,1}},
+	{"Kart",93,{0.62,-0.37,0.46},{12,2,35,36,2,51,53,91,2,11,22,4,35}},
+	{"Mower",60,{-0.35,-1.03,0.24},{16,94,1,11,1,116,1,117,1,4,1,25,1,3,1,37,1}},
+	{"Duneride",110,{0.00,0.00,0.00},{16,91,38,115,43,85,6,79,7,78,8,77,18,79,18,86,24}},
+	{"Sweeper",60,{-0.59,-0.94,0.26},{2,26,26}},
+	{"Broadway",158,{0.00,0.00,0.00},{16,12,1,19,96,31,64,25,96,38,1,51,96,57,1,66,96}},
+	{"Tornado",158,{0.00,0.00,0.00},{16,67,1,68,96,72,1,74,8,75,96,76,8,79,1,84,96}},
+	{"AT-400",270,{0.00,0.00,0.00},{12,1,3,8,7,8,1,8,16,23,31,4,44}},
+	{"DFT-30",130,{-1.33,2.89,-0.02},{2,1,1}},
+	{"Huntley",158,{1.13,-2.29,0.16},{16,37,37,42,42,53,53,62,62,7,7,1,1,11,11,15,15}},
+	{"Stafford",153,{1.23,-1.77,0.29},{18,92,92,81,81,67,67,66,66,61,61,53,53,51,51,47,47,43,43}},
+	{"BF-400",151,{-0.22,0.01,0.54},{16,54,1,58,1,66,1,72,1,75,1,87,1,11,1,36,1}},
+	{"Newsvan",136,{-0.90,0.15,-0.32},{16,41,1,41,2,49,11,56,123,11,113,112,116,114,118,119,11}},
+	{"Tug",85,{-0.62,0.37,-0.12},{2,1,1}},
+	{"Trailer 3",0,{0.00,0.00,0.00},{2,1,1}},
+	{"Emperor",153,{1.07,-2.29,0.20},{16,37,37,42,42,53,53,62,62,7,7,1,1,11,11,15,15}},
+	{"Wayfarer",142,{0.00,0.00,0.00},{16,119,1,122,1,8,1,1,1,13,1,25,1,27,1,32,1}},
+	{"Euros",165,{-1.22,-1.21,0.12},{16,36,1,4,1,43,1,53,1,72,1,75,1,95,1,11,1}},
+	{"Hotdog",108,{-1.20,-2.12,0.23},{2,1,1}},
+	{"Club",162,{0.98,-0.89,0.10},{16,37,37,31,31,23,23,22,22,7,7,124,124,114,114,112,112}},
+	{"Freight Carriage",0,{0.00,0.00,0.00},{0,0,0}},
+	{"Trailer 3",0,{0.00,0.00,0.00},{2,1,1}},
+	{"Andromada",270,{0.00,0.00,0.00},{2,1,1}},
+	{"Dodo",270,{0.00,0.00,0.00},{16,51,1,58,8,6,1,68,8,2,1,13,8,22,1,36,8}},
+	{"RC Cam",130,{0.00,0.00,0.00},{0,0,0}},
+	{"Launch",190,{0.00,0.00,0.00},{2,112,2}},
+	{"Police Car (LSPD)",175,{-0.97,-2.16,0.06},{2,0,1}},
+	{"Police Car (SFPD)",175,{-1.02,-2.16,0.07},{2,0,1}},
+	{"Police Car (LVPD)",175,{-1.08,-1.95,0.18},{2,0,1}},
+	{"Police Ranger",158,{0.00,0.00,0.00},{2,0,1}},
+	{"Picador",151,{0.95,-2.01,0.06},{16,81,8,32,8,43,8,67,8,11,11,8,9,2,2,83,13}},
+	{"S.W.A.T. Van",110,{-1.36,-1.69,0.92},{2,1,1}},
+	{"Alpha",169,{0.97,-1.95,0.08},{16,58,1,69,1,75,77,18,1,32,1,45,45,13,1,34,1}},
+	{"Phoenix",171,{1.24,-2.20,-0.04},{16,58,1,69,1,75,77,18,1,32,1,45,45,13,1,34,1}},
+	{"Glendale",148,{0.00,0.00,0.00},{16,67,76,68,76,78,76,2,76,16,76,18,76,25,76,45,88}},
+	{"Sadler",152,{-0.95,-0.93,-0.02},{16,61,8,32,8,43,8,67,8,11,11,8,9,2,2,83,13}},
+	{"Luggage Trailer A",0,{0.00,0.00,0.00},{0,0,0}},
+	{"Luggage Trailer B",0,{0.00,0.00,0.00},{0,0,0}},
+	{"Stair Trailer",0,{0.00,0.00,0.00},{2,1,1}},
+	{"Boxville",108,{-1.26,-0.03,0.09},{2,36,36}},
+	{"Farm Plow",0,{0.00,0.00,0.00},{0,0,0}},
+	{"Utility Trailer",0,{0.00,0.00,0.00},{0,0,0}}
+};
 
 #define v_interior      	0
 #define v_color<%1>     	(%1 + 1)
@@ -135,189 +349,281 @@
 #define v_sticky            21
 #define v_update_timer      22
 
-#if ! defined MAX_VEHICLE_ATTACHED_OBJECTS
-	#define MAX_VEHICLE_ATTACHED_OBJECTS    	30
-#endif
-
-#if ! defined IsValidVehicle
-	native IsValidVehicle(vehicleid);
-#endif
-/********************************************************************************************************************************/
-stock const gVehicleNames[MAX_VEHICLE_MODELS][] =
+stock static Vehicle_SetPropertyInt(vehicleid, type, set)
 {
-	"Landstalker","Bravura","Buffalo","Linerunner","Perrenial","Sentinel","Dumper","Firetruck","Trashmaster","Stretch","Manana",	"Infernus","Voodoo","Pony","Mule","Cheetah","Ambulance","Leviathan","Moonbeam","Esperanto","Taxi","Washington","Bobcat",
-	"Mr Whoopee","BF Injection","Hunter","Premier","Enforcer","Securicar","Banshee","Predator","Bus","Rhino","Barracks","Hotknife",	"Trailer 1","Previon","Coach","Cabbie","Stallion","Rumpo","RC Bandit","Romero","Packer","Monster","Admiral","Squalo","Seasparrow",
-	"Pizzaboy","Tram","Trailer 2","Turismo","Speeder","Reefer","Tropic","Flatbed","Yankee","Caddy","Solair","Berkley's RC Van",	"Skimmer","PCJ-600","Faggio","Freeway","RC Baron","RC Raider","Glendale","Oceanic","Sanchez","Sparrow","Patriot","Quad",
-	"Coastguard","Dinghy","Hermes","Sabre","Rustler","ZR-350","Walton","Regina","Comet","BMX","Burrito","Camper","Marquis","Baggage",	"Dozer","Maverick","News Chopper","Rancher","FBI Rancher","Virgo","Greenwood","Jetmax","Hotring","Sandking","Blista Compact",
-	"Police Maverick","Boxville","Benson","Mesa","RC Goblin","Hotring Racer A","Hotring Racer B","Bloodring Banger","Rancher",	"Super GT","Elegant","Journey","Bike","Mountain Bike","Beagle","Cropdust","Stunt","Tanker","Roadtrain","Nebula","Majestic",
-	"Buccaneer","Shamal","Hydra","FCR-900","NRG-500","HPV1000","Cement Truck","Tow Truck","Fortune","Cadrona","FBI Truck","Willard",	"Forklift","Tractor","Combine","Feltzer","Remington","Slamvan","Blade","Freight","Streak","Vortex","Vincent","Bullet","Clover",
-	"Sadler","Firetruck LA","Hustler","Intruder","Primo","Cargobob","Tampa","Sunrise","Merit","Utility","Nevada","Yosemite","Windsor",	"Monster A","Monster B","Uranus","Jester","Sultan","Stratum","Elegy","Raindance","RC Tiger","Flash","Tahoma","Savanna","Bandito",
-	"Freight Flat","Streak Carriage","Kart","Mower","Duneride","Sweeper","Broadway","Tornado","AT-400","DFT-30","Huntley","Stafford",	"BF-400","Newsvan","Tug","Trailer 3","Emperor","Wayfarer","Euros","Hotdog","Club","Freight Carriage","Trailer 3","Andromada",
-	"Dodo","RC Cam","Launch","Police Car (LSPD)","Police Car (SFPD)","Police Car (LVPD)","Police Ranger","Picador","S.W.A.T. Van",	"Alpha","Phoenix","Glendale","Sadler","Luggage Trailer A","Luggage Trailer B","Stair Trailer","Boxville","Farm Plow","Utility Trailer"
-};
-stock const gVehicleTopSpeed[MAX_VEHICLE_MODELS] =
-{
-	// 30 colums in each row
-	157,147,186,110,133,164,110,148,100,158,129,221,168,110,105,192,154,270,115,149,145,154,140, 99,135,270,173,165,157,201,
-	190,130, 94,110,167,  0,149,158,142,168,136,145,139,126,110,164,270,270,111,  0,  0,193,270, 60,135,157,106, 95,157,136,
-	270,160,111,142,145,145,147,140,144,270,157,110,190,190,149,173,270,186,117,140,184, 73,156,122,190, 99, 64,270,270,139,
-	157,149,140,270,214,176,162,270,108,123,140,145,216,216,173,140,179,166,108, 79,101,270,270,270,120,142,157,157,164,270,
-	270,160,176,151,130,160,158,149,176,149, 60, 70,110,167,168,158,173,  0,  0,270,149,203,164,151,150,147,149,142,270,153,
-	145,157,121,270,144,158,113,113,156,178,169,154,178,270,145,165,160,173,146,  0,  0, 93, 60,110, 60,158,158,270,130,158,
-	153,151,136, 85,  0,153,142,165,108,162,  0,  0,270,270,130,190,175,175,175,158,151,110,169,171,148,152,  0,  0,  0,108,
-	0,0
-};
-stock static const Float:gVehiclePetrolCapOffsets[MAX_VEHICLE_MODELS][3] =
-{
-	{-1.06,		-2.07,		-0.03},	{1.25,		-0.91,		0.05},	{1.11,		-1.92,		0.17},	{-1.46,		0.02,		-0.66},	{-1.03,		-2.37,		0.06},	{-0.86,		-2.16,		-0.08},	{0.00,		0.00,		0.00},	{-1.07,		-3.74,		-0.42},	{-1.46,		1.24,		-0.57},	{-1.04,		-2.82,		0.14}, {-0.96,		-1.66,		0.23},	{1.06,		-2.10,		0.09},	{0.00,		0.00,		0.00},	{-0.46,		0.53,		-0.79},	{-0.66,		-0.71,		-0.70},	{-1.07,		-2.06,		0.05},
-	{-1.16,		-2.72,		-0.21},	{0.00,		0.00,		0.00},	{-1.24,		-1.76,		0.03},	{-1.09,		-1.99,		0.06},	{-1.03,		-2.14,		0.08},	{-1.02,		-2.43,		-0.14},	{-0.93,		-0.41,		-0.19},	{-1.13,		-1.90,		-0.28},	{-1.11,		-0.54,		-0.10},	{0.00,		0.00,		0.00},	{-1.00,		-2.16,		0.06},	{-1.27,		-3.18,		-0.18},	{-1.01,		-2.65,		-0.56},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{-1.32,		-5.47,		-0.12},
-	{0.00,		0.00,		0.00},	{-1.51,		0.15,		-0.67},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{-1.02,		-1.81,		0.16},	{-1.24,		-4.98,		-0.51},	{-1.06,		-1.93,		-0.00},	{-1.07,		-1.50,		0.07},	{-0.89,		-0.47,		-0.46},	{0.00,		0.00,		0.00},	{-1.17,		-2.20,		0.08},	{-1.24,		1.25,		-0.91},	{0.00,		0.00,		0.00},	{-1.07,		-1.95,		0.13},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},
-	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{1.08,		-1.21,		-0.03},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{-1.52,		0.00,		-0.74},	{0.73,		-0.05,		-0.59},	{0.00,		0.00,		0.00},	{-1.11,		-2.04,		-0.09},	{-0.97,		-2.30,		0.21},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{-0.25,		0.20,		-0.17},
-	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{-0.92,		-2.30,		0.08},	{-0.07,		0.17,		0.69},	{0.00,		0.00,		0.00},	{-1.17,		-2.37,		0.24},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{-1.09,		-1.60,		0.13},	{0.00,		0.00,		0.00},	{-1.03,		-1.52,		0.15},	{1.01,		-0.33,		0.23},	{-1.09,		-1.98,		0.09},
-	{-1.12,		-0.88,		0.14},	{0.00,		0.00,		0.00},	{1.03,		-2.26,		0.00},	{0.80,		-2.50,		-0.05},	{0.00,		0.00,		0.00},	{-0.88,		0.71,		0.03},	{-0.66,		-3.17,		0.58},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{1.22,		-0.74,		0.02},	{0.00,		0.00,		0.00},	{-1.05,		-2.18,		0.02},	{-1.07,		-2.09,		0.17},	{0.00,		0.00,		0.00},	{-1.00,		-2.20,		0.14},	{1.16,		-1.91,		-0.11},
-	{1.08,		-1.83,		0.15},	{0.00,		0.00,		0.00},	{-1.21,		-0.01,		0.09},	{-1.19,		-1.09,		-0.31},	{-0.91,		-1.70,		-0.06},	{0.00,		0.00,		0.00},	{-0.96,		-1.88,		0.13},	{-0.98,		-2.03,		0.04},	{-1.14,		-1.82,		0.13},	{1.22,		-0.74,		0.00},	{0.96,		-1.11,		-0.11},	{-1.08,		-2.30,		0.08},	{-1.35,		-3.05,		-0.67},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},
-	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{-1.50,		-0.88,		-0.24},	{-1.08,		0.51,		-1.43},	{-1.13,		-2.44,		-0.01},	{-1.11,		-1.95,		0.08},	{1.09,		-2.19,		-0.08},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{-0.17,		0.13,		0.52},	{-0.14,		0.18,		0.53},	{-0.18,		0.24,		0.49},	{1.24,		0.46,		-1.06},	{-1.31,		-0.50,		-0.07},	{-0.94,		-1.94,		0.05},	{-1.13,		-1.70,		0.16},
-	{-0.51,		-2.07,		0.01},	{-1.15,		-2.20,		0.22},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{0.00,		-2.43,		-0.91},	{0.91,		-1.97,		0.11},	{-1.01,		-0.83,		-0.20},	{-1.13,		-0.55,		0.28},	{-0.98,		-1.69,		0.06},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{-1.23,		-2.51,		-0.03},	{0.00,		0.00,		0.00},	{-0.97,		-1.92,		0.31},	{-0.96,		-0.94,		-0.01},
-	{-1.15,		2.04,		0.32},	{0.00,		0.00,		0.00},	{1.22,		-1.99,		0.16},	{-1.09,		-2.00,		0.13},	{0.00,		0.00,		0.00},	{-0.89,		-1.14,		0.18},	{-1.10,		-2.40,		-0.02},	{-1.03,		-2.66,		0.07},	{-0.95,		-0.94,		0.45},	{0.00,		0.00,		0.00},	{1.27,		-2.37,		0.13},	{-0.80,		-1.47,		0.17},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{-0.84,		-1.92,		0.23},	{-1.01,		-1.76,		0.25},
-	{0.98,		-1.83,		0.20},	{1.13,		-2.28,		0.11},	{0.93,		-0.71,		0.05},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{0.95,		-0.86,		0.09},	{1.18,		-2.26,		0.06},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},  {0.00,		0.00,		0.00},	{0.62,		-0.37,		0.46},	{-0.35,		-1.03,		0.24},	{0.00,		0.00,		0.00},	{-0.59,		-0.94,		0.26},	{0.00,		0.00,		0.00},
-	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{-1.33,		2.89,		-0.02},	{1.13,		-2.29,		0.16},	{1.23,		-1.77,		0.29},	{-0.22,		0.01,		0.54},	{-0.90,		0.15,		-0.32},	{-0.62,		0.37,		-0.12},	{0.00,		0.00,		0.00},	{1.07,		-2.29,		0.20},  {0.00,		0.00,		0.00},	{-1.22,		-1.21,		0.12},	{-1.20,		-2.12,		0.23},	{0.98,		-0.89,		0.10},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},
-	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},  {0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},	{-0.97,		-2.16,		0.06},	{-1.02,		-2.16,		0.07},	{-1.08,		-1.95,		0.18},	{0.00,		0.00,		0.00},	{0.95,		-2.01,		0.06},	{-1.36,		-1.69,		0.92},	{0.97,		-1.95,		0.08},	{1.24,		-2.20,		-0.04},	{0.00,		0.00,		0.00},	{-0.95,		-0.93,		-0.02},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00},
-	{0.00,		0.00		,0.00},	{-1.26,		-0.03,		0.09},	{0.00,		0.00,		0.00},	{0.00,		0.00,		0.00}
-};
-stock static const gVehicleColors[MAX_VEHICLE_MODELS][] =
-{
-    {16, 004, 001, 123, 001, 113, 001, 101, 001, 075, 001, 062, 001, 040, 001, 036, 001},    {16, 041, 041, 047, 047, 052, 052, 066, 066, 074, 074, 087, 087, 091, 091, 113, 113},    {16, 010, 010, 013, 013, 022, 022, 030, 030, 039, 039, 090, 090, 098, 098, 110, 110},	{16, 036, 001, 037, 001, 030, 001, 028, 001, 025, 001, 040, 001, 101, 001, 113, 001},    {16, 113, 039, 119, 050, 123, 092, 109, 100, 101, 101, 095, 105, 083, 110, 066, 025},
-	{16, 011, 001, 024, 001, 036, 001, 040, 001, 075, 001, 091, 001, 123, 001, 004, 001},    {2,  001, 001},    {2,  003, 001},    {2,  026, 026},    {2,  001, 001},    {16, 004, 001, 009, 001, 010, 001, 025, 001, 036, 001, 040, 001, 045, 001, 084, 001},    {16, 012, 001, 064, 001, 123, 001, 116, 001, 112, 001, 106, 001, 080, 001, 075, 001},    {16, 009, 001, 010, 008, 011, 001, 025, 008, 027, 001, 029, 008, 030, 001, 037, 008},
-	{16, 087, 001, 088, 001, 091, 001, 105, 001, 109, 001, 119, 001, 004, 001, 025, 001},    {16, 025, 001, 028, 001, 043, 001, 067, 001, 072, 001, 009, 001, 095, 001, 024, 001},    {16, 020, 001, 025, 001, 036, 001, 040, 001, 062, 001, 075, 001, 092, 001, 000, 001},    {2,  001, 003},    {0,  000, 000},    {16, 119, 119, 117, 227, 114, 114, 108, 108, 095, 095, 081, 081, 061, 061, 041, 041},    {16, 045, 075, 047, 076, 033, 075, 013, 076, 054, 075, 069, 076, 059, 075, 087, 076},
-    {2,  006, 001},    {16, 004, 001, 013, 001, 025, 001, 030, 001, 036, 001, 040, 001, 075, 001, 095, 001},    {14, 096, 025, 097, 025, 101, 025, 111, 031, 113, 036, 083, 057, 067, 059},    {12, 001, 016, 001, 056, 001, 017, 001, 053, 001, 005, 001, 035},	{16, 001, 000, 002, 002, 003, 002, 003, 006, 006, 016, 015, 030, 024, 053, 035, 061},    {2,  043, 000},    {16, 037, 037, 042, 042, 053, 053, 062, 062, 007, 007, 010, 010, 011, 011, 015, 015},    {2,  000, 001},    {2,  004, 075},
-	{16, 012, 012, 013, 013, 014, 014, 001, 002, 002, 001, 001, 003, 003, 001, 010, 010},    {2,  046, 026},    {16, 071, 059, 075, 059, 092, 072, 047, 074, 055, 083, 059, 083, 071, 087, 082, 087},    {2,  043, 000},    {2,  043, 000},	{14, 001, 001, 012, 012, 002, 002, 006, 006, 004, 004, 046, 046, 053, 053},    {2,  001, 001},    {14, 083, 001, 087, 001, 092, 001, 095, 001, 109, 001, 119, 045, 011, 001},    {16, 054, 007, 079, 007, 087, 007, 095, 016, 098, 020, 105, 020, 123, 020, 125, 021},
-    {2,  006, 076},    {16, 057, 008, 008, 017, 043, 021, 054, 038, 067, 008, 037, 078, 065, 079, 025, 078},    {16, 034, 034, 032, 032, 020, 020, 110, 110, 066, 066, 084, 084, 118, 118, 121, 121},    {16, 002, 096, 079, 042, 082, 054, 067, 086, 126, 096, 070, 096, 110, 054, 067, 098},    {16, 000, 000, 011, 105, 025, 109, 036, 000, 040, 036, 075, 036, 000, 036, 000, 109},    {16, 004, 001, 020, 001, 024, 001, 025, 001, 036, 001, 040, 001, 054, 001, 084, 001},
-	{12, 032, 036, 032, 042, 032, 053, 032, 066, 032, 014, 032, 032},    {16, 034, 034, 035, 035, 037, 037, 039, 039, 041, 041, 043, 043, 045, 045, 047, 047},    {32, 000, 000, 000, 001, 001, 005, 001, 001, 003, 003, 000, 001, 001, 022, 001, 001, 001, 035, 001, 001, 001, 044, 001, 001, 001, 053, 001, 001, 001, 057, 001, 001},    {2,  075, 002},    {2,  001, 003},    {2,  001, 074},    {2,  001, 001},    {16, 123, 123, 125, 125, 036, 036, 016, 016, 018, 018, 046, 046, 061, 061, 075, 075},
-	{16, 001, 003, 001, 005, 001, 016, 001, 022, 001, 035, 001, 044, 001, 053, 001, 057},    {2,  056, 056},    {2,  026, 026},    {16, 084, 015, 084, 058, 084, 031, 032, 074, 043, 031, 001, 031, 077, 031, 032, 074},    {16, 084, 063, 091, 063, 102, 065, 105, 072, 110, 093, 121, 093, 012, 095, 023, 001},    {16, 058, 001, 002, 001, 063, 001, 018, 001, 032, 001, 045, 001, 013, 001, 034, 001},    {16, 091, 001, 101, 001, 109, 001, 113, 001, 004, 001, 025, 001, 030, 001, 036, 001},
-	{16, 026, 026, 028, 028, 044, 044, 051, 051, 057, 057, 072, 072, 106, 106, 112, 112},    {16, 001, 003, 001, 009, 001, 018, 001, 030, 017, 023, 046, 023, 046, 032, 057, 034},    {16, 036, 001, 037, 001, 043, 001, 053, 001, 061, 001, 075, 001, 079, 001, 088, 001},    {16, 012, 012, 013, 013, 014, 014, 001, 002, 002, 001, 001, 003, 003, 001, 010, 010},    {16, 079, 079, 084, 084, 007, 007, 011, 011, 019, 019, 022, 022, 036, 036, 053, 053},    {2,  014, 075},
-    {2,  014, 075},    {16, 067, 076, 068, 076, 078, 076, 002, 076, 016, 076, 018, 076, 025, 076, 045, 088},    {16, 051, 001, 058, 008, 060, 001, 068, 008, 002, 001, 013, 008, 022, 001, 036, 008},    {8,  006, 006, 046, 046, 053, 053, 003, 003},    {0,  000, 000},    {2,  043, 000},	{16, 120, 117, 103, 111, 120, 114, 074, 091, 120, 112, 074, 083, 120, 113, 066, 071},    {4,  056, 015, 056, 053},    {4,  056, 015, 056, 053},
-	{16, 097, 001, 081, 001, 105, 001, 110, 001, 091, 001, 074, 001, 084, 001, 083, 001},	{16, 002, 039, 009, 039, 017, 001, 021, 001, 033, 000, 037, 000, 041, 029, 056, 029},    {16, 006, 007, 007, 006, 001, 006, 089, 091, 119, 117, 103, 102, 077, 087, 071, 077},    {16, 092, 001, 094, 001, 101, 001, 121, 001, 000, 001, 022, 001, 036, 001, 075, 001},    {16, 072, 001, 066, 001, 059, 001, 045, 001, 040, 001, 039, 001, 035, 001, 020, 001},
-	{16, 027, 036, 059, 036, 060, 035, 055, 041, 054, 031, 049, 023, 045, 032, 040, 029},    {14, 073, 045, 012, 012, 002, 002, 006, 006, 004, 004, 046, 046, 053, 053},    {16, 001, 001, 003, 003, 006, 006, 046, 046, 065, 009, 014, 001, 012, 009, 026, 001},{16, 041, 041, 048, 048, 052, 052, 064, 064, 071, 071, 085, 085, 010, 010, 062, 062}, {32, 001, 031, 001, 000, 001, 031, 001, 000, 001, 020, 003, 000, 001, 005, 000, 000, 000, 006, 003, 000, 003, 006, 003, 000, 016, 000, 008, 000, 017, 000, 120, 000},
-    {8,  012, 035, 050, 032, 040, 026, 066, 036},    {14, 001, 073, 001, 074, 001, 075, 001, 076, 001, 077, 001, 078, 001, 079},    {2,  001, 001},    {16, 026, 014, 029, 042, 026, 057, 054, 029, 026, 003, 003, 029, 012, 039, 074, 035},    {4,  002, 026, 002, 029},    {12, 013, 118, 014, 123, 120, 123, 112, 120, 084, 110, 076, 102},    {2,  000, 000},    {12, 040, 065, 071, 072, 052, 066, 064, 072, 030, 072, 060, 072},{16, 030, 026, 077, 026, 081, 027, 024, 055, 028, 056, 049, 059, 052, 069, 071, 107},
-	{2,  036, 013},  {16, 007, 094, 036, 088, 051, 075, 053, 075, 058, 067, 075, 067, 075, 061, 079, 062},    {16, 123, 124, 119, 122, 118, 117, 116, 115, 114, 108, 101, 106, 088, 099, 005, 006},    {16, 074, 072, 066, 072, 053, 056, 037, 019, 022, 022, 020, 020, 009, 014, 000, 000},    {2,  000, 001},    {16, 011, 123, 013, 120, 020, 117, 024, 112, 027, 107, 036, 105, 037, 107, 043, 093},    {16, 109, 025, 109, 032, 112, 032, 010, 032, 030, 044, 032, 052, 084, 066, 084, 069},
-	{16, 075, 084, 040, 084, 040, 110, 028, 119, 025, 119, 021, 119, 013, 119, 004, 119},    {2,  014, 075},    {16, 083, 066, 087, 074, 087, 075, 098, 083, 101, 100, 103, 101, 117, 116, 123, 036},    {16, 036, 117, 036, 013, 042, 030, 042, 033, 054, 036, 075, 079, 092, 101, 098, 109},    {16, 051, 039, 057, 038, 045, 029, 034, 009, 065, 009, 014, 001, 012, 009, 026, 001},    {12, 013, 118, 014, 123, 120, 123, 112, 120, 084, 110, 076, 102},
-    {10, 003, 003, 006, 006, 007, 007, 052, 052, 076, 076},    {16, 037, 037, 042, 042, 053, 053, 062, 062, 007, 007, 010, 010, 011, 011, 015, 015},    {2,  001, 001},    {16, 007, 001, 074, 001, 061, 001, 016, 001, 025, 001, 030, 001, 036, 001, 053, 001},    {16, 043, 043, 046, 046, 039, 039, 028, 028, 016, 016, 006, 006, 005, 005, 002, 002},    {16, 003, 090, 004, 090, 007, 068, 008, 066, 012, 060, 027, 097, 034, 051, 037, 051},
-	{16, 017, 039, 015, 123, 032, 112, 045, 088, 052, 071, 057, 067, 061, 096, 096, 096},    {16, 038, 051, 021, 036, 021, 034, 030, 034, 054, 034, 055, 020, 048, 018, 051, 006},    {16, 010, 001, 025, 001, 028, 001, 036, 001, 040, 001, 054, 001, 075, 001, 113, 001},    {16, 013, 076, 024, 077, 063, 078, 042, 076, 054, 077, 039, 078, 011, 076, 062, 077},    {16, 116, 001, 119, 001, 122, 001, 004, 001, 009, 001, 024, 001, 027, 001, 036, 001},
-	{16, 037, 036, 036, 036, 040, 036, 043, 041, 047, 041, 051, 072, 054, 075, 055, 084},    {16, 002, 039, 009, 039, 017, 001, 021, 001, 033, 000, 037, 000, 041, 029, 056, 029},    {2,  001, 001},    {0,  000, 000},    {16, 074, 074, 075, 013, 087, 118, 092, 003, 115, 118, 025, 118, 036, 000, 118, 118},    {16, 003, 003, 003, 008, 006, 025, 007, 079, 008, 082, 036, 105, 039, 106, 051, 118},    {0,  000, 000},
-	{32, 060, 024, 023, 000, 061, 027, 123, 000, 065, 031, 031, 000, 061, 061, 030, 000, 081, 035, 023, 000, 062, 061, 062, 000, 083, 066, 064, 000, 083, 064, 064, 000},    {14, 001, 001, 017, 020, 018, 020, 022, 030, 036, 043, 044, 051, 052, 054},	{16, 002, 039, 009, 039, 017, 001, 021, 001, 033, 000, 037, 000, 041, 029, 056, 029},    {16, 052, 001, 053, 001, 066, 001, 075, 001, 076, 001, 081, 001, 095, 001, 109, 001},    {0,  000, 000},
-	{16, 037, 037, 042, 042, 053, 053, 062, 062, 007, 007, 010, 010, 011, 011, 015, 015},    {16, 110, 001, 111, 001, 112, 001, 114, 001, 119, 001, 122, 001, 004, 001, 013, 001},    {12, 002, 035, 036, 002, 051, 053, 091, 002, 011, 022, 040, 035},    {0,  000, 000},    {16, 073, 001, 074, 001, 075, 001, 077, 001, 079, 001, 083, 001, 084, 001, 091, 001},	{16, 037, 037, 042, 042, 053, 053, 062, 062, 007, 007, 010, 010, 011, 011, 015, 015},
-	{16, 003, 001, 028, 001, 031, 001, 055, 001, 066, 001, 097, 001, 123, 001, 118, 001},    {16, 009, 001, 012, 001, 026, 096, 030, 096, 032, 001, 037, 001, 057, 096, 071, 096},    {2,  001, 001},    {2,  001, 001},	{14, 096, 067, 086, 070, 079, 074, 070, 086, 061, 098, 075, 075, 075, 091},    {16, 037, 037, 042, 042, 053, 053, 062, 062, 007, 007, 010, 010, 011, 011, 015, 015},    {16, 051, 001, 058, 008, 060, 001, 068, 008, 002, 001, 013, 008, 022, 001, 036, 008},
-	{16, 013, 118, 024, 118, 031, 093, 032, 092, 045, 092, 113, 092, 119, 113, 122, 113},    {16, 076, 008, 032, 008, 043, 008, 067, 008, 011, 011, 008, 090, 002, 002, 083, 013},    {2,  003, 001},    {16, 050, 001, 047, 001, 044, 096, 040, 096, 039, 001, 030, 001, 028, 096, 009, 096},    {16, 062, 037, 078, 038, 002, 062, 003, 087, 002, 078, 113, 078, 119, 062, 007, 078},	{16, 122, 001, 123, 001, 125, 001, 010, 001, 024, 001, 037, 001, 055, 001, 066, 001},    {2,  001, 001},
-	{16, 074, 039, 072, 039, 075, 039, 079, 039, 083, 036, 084, 036, 089, 035, 091, 035},    {16, 037, 037, 042, 042, 053, 053, 062, 062, 007, 007, 010, 010, 011, 011, 015, 015},    {16, 067, 001, 072, 001, 075, 001, 083, 001, 091, 001, 101, 001, 109, 001, 020, 001},    {6,  056, 056, 049, 049, 026, 124},    {16, 038, 009, 055, 023, 061, 074, 071, 087, 091, 087, 098, 114, 102, 119, 111, 003},    {16, 053, 032, 015, 032, 045, 032, 034, 030, 065, 032, 014, 032, 012, 032, 043, 032},
-    {16, 051, 001, 058, 001, 060, 001, 068, 001, 002, 001, 013, 001, 022, 001, 036, 001},    {2,  001, 001},    {2,  001, 001},    {16, 112, 001, 116, 001, 117, 001, 024, 001, 030, 001, 035, 001, 036, 001, 040, 001},    {16, 051, 001, 058, 008, 060, 001, 068, 008, 002, 001, 013, 008, 022, 001, 036, 008},    {16, 052, 039, 009, 039, 017, 001, 021, 001, 033, 000, 037, 000, 041, 029, 056, 029},    {16, 057, 008, 008, 017, 043, 021, 054, 038, 067, 008, 037, 078, 065, 079, 025, 078},
-	{16, 036, 001, 035, 001, 017, 001, 011, 001, 116, 001, 113, 001, 101, 001, 092, 001},    {2,  001, 006},    {0,  000, 000},    {16, 037, 037, 042, 042, 053, 053, 062, 062, 007, 007, 010, 010, 011, 011, 015, 015},    {16, 109, 001, 030, 008, 095, 001, 084, 008, 083, 001, 072, 008, 071, 001, 052, 008},    {16, 097, 096, 088, 064, 090, 096, 093, 064, 097, 096, 099, 081, 102, 114, 114, 001},    {16, 002, 039, 009, 039, 017, 001, 021, 001, 033, 000, 037, 000, 041, 029, 056, 029},    {0,  000, 000},
-	{2,  001, 001},    {12, 002, 035, 036, 002, 051, 053, 091, 002, 011, 022, 040, 035},    {16, 094, 001, 101, 001, 116, 001, 117, 001, 004, 001, 025, 001, 030, 001, 037, 001},	{16, 091, 038, 115, 043, 085, 006, 079, 007, 078, 008, 077, 018, 079, 018, 086, 024},    {2,  026, 026},    {16, 012, 001, 019, 096, 031, 064, 025, 096, 038, 001, 051, 096, 057, 001, 066, 096},	{16, 067, 001, 068, 096, 072, 001, 074, 008, 075, 096, 076, 008, 079, 001, 084, 096},
-	{12, 001, 003, 008, 007, 008, 010, 008, 016, 023, 031, 040, 044},    {2,  001, 001},    {16, 037, 037, 042, 042, 053, 053, 062, 062, 007, 007, 010, 010, 011, 011, 015, 015},    {18, 092, 092, 081, 081, 067, 067, 066, 066, 061, 061, 053, 053, 051, 051, 047, 047, 043, 043},	{16, 054, 001, 058, 001, 066, 001, 072, 001, 075, 001, 087, 001, 101, 001, 036, 001},	{16, 041, 010, 041, 020, 049, 011, 056, 123, 110, 113, 112, 116, 114, 118, 119, 101},    {2,  001, 001},    {2,  001, 001},
-	{16, 037, 037, 042, 042, 053, 053, 062, 062, 007, 007, 010, 010, 011, 011, 015, 015},    {16, 119, 001, 122, 001, 008, 001, 010, 001, 013, 001, 025, 001, 027, 001, 032, 001},    {16, 036, 001, 040, 001, 043, 001, 053, 001, 072, 001, 075, 001, 095, 001, 101, 001},    {2,  001, 001},    {16, 037, 037, 031, 031, 023, 023, 022, 022, 007, 007, 124, 124, 114, 114, 112, 112},    {0,  000, 000},    {2,  001, 001},    {2,  001, 001},
-	{16, 051, 001, 058, 008, 060, 001, 068, 008, 002, 001, 013, 008, 022, 001, 036, 008},    {0,  000, 000},    {2,  112, 020},    {2,  000, 001},    {2,  000, 001},    {2,  000, 001},    {2,  000, 001},	{16, 081, 008, 032, 008, 043, 008, 067, 008, 011, 011, 008, 090, 002, 002, 083, 013},    {2,  001, 001},    {16, 058, 001, 069, 001, 075, 077, 018, 001, 032, 001, 045, 045, 013, 001, 034, 001},	{16, 058, 001, 069, 001, 075, 077, 018, 001, 032, 001, 045, 045, 013, 001, 034, 001},
-	{16, 067, 076, 068, 076, 078, 076, 002, 076, 016, 076, 018, 076, 025, 076, 045, 088},    {16, 061, 008, 032, 008, 043, 008, 067, 008, 011, 011, 008, 090, 002, 002, 083, 013},    {0,  000, 000},    {0,  000, 000},    {2,  001, 001},    {2,  036, 036},    {0,  000, 000},    {0,  000, 000}
-};
-static const v_property_frmt_strings[][] =
-{
-    "%i_v_interior",    "%i_v_color_1",    "%i_v_color_2",    "%i_v_paintjob",    "%i_v_horn",    "%i_v_damage_1",
-    "%i_v_damage_2",    "%i_v_damage_3",    "%i_v_damage_4",    "%i_v_editor",    "%i_v_speedcap",    "%i_v_spawn_x",
-    "%i_v_spawn_y",    "%i_v_spawn_z",    "%i_v_spawn_rotation",    "%i_v_spawn_interiorid",    "%i_v_spawn_worldid",
-    "%i_v_spawn_uno_damage",    "%i_v_petrolcap",    "%i_v_bomb",    "%i_v_bomb_timer",    "%i_v_sticky",    "%i_v_update_timer"
-};
-static const gWeaponDamageOnVehicle[]=
-{
-	40,40,140,80,80,80,25,25,30,
-	30,	25,	75,	125,751,751,0,50
-};
-/********************************************************************************************************************************/
-enum gVFloat_t
-{
-	Float:VehicleSpawn_X,
-	Float:VehicleSpawn_Y,
-	Float:VehicleSpawn_Z,
-	Float:VehicleSpawn_Rot,
-	Float:VehicleVel_X,
-	Float:VehicleVel_Y,
-	Float:VehicleVel_Z,
-	Float:VehicleHealth
+	#if defined _gvar_included
+		switch(type)
+		{
+			case v_interior: 		SetGVarInt("v_interior",set,vehicleid);
+			case v_color<0>: 		SetGVarInt("v_color_1",set,vehicleid);
+			case v_color<1>: 		SetGVarInt("v_color_2",set,vehicleid);
+			case v_paintjob: 		SetGVarInt("v_paintjob",set,vehicleid);
+			case v_horn: 			SetGVarInt("v_horn",set,vehicleid);
+			case v_damage<0>:		SetGVarInt("v_damage_1",set,vehicleid);
+			case v_damage<1>: 		SetGVarInt("v_damage_2",set,vehicleid);
+			case v_damage<2>: 		SetGVarInt("v_damage_3",set,vehicleid);
+			case v_damage<3>: 		SetGVarInt("v_damage_4",set,vehicleid);
+			case v_editor: 			SetGVarInt("v_editor",set,vehicleid);
+			case v_spawn_interiorid:SetGVarInt("v_spawn_interiorid",set,vehicleid);
+			case v_spawn_worldid: 	SetGVarInt("v_spawn_worldid",set,vehicleid);
+			case v_spawn_uno_damage:SetGVarInt("v_spawn_uno_damage",set,vehicleid);
+			case v_petrolcap:		SetGVarInt("v_petrolcap",set,vehicleid);
+			case v_bomb:			SetGVarInt("v_bomb",set,vehicleid);
+			case v_bomb_timer:		SetGVarInt("v_bomb_timer",set,vehicleid);
+			case v_sticky:			SetGVarInt("v_sticky",set,vehicleid);
+			case v_update_timer:	SetGVarInt("v_update_timer",set,vehicleid);
+		}
+		return 1;
+	#else
+		new string[35];
+		switch(type)
+		{
+			case v_interior: 		format(string, sizeof(string), "%i_v_interior", vehicleid);
+			case v_color<0>: 		format(string, sizeof(string), "%i_v_color_1", vehicleid);
+			case v_color<1>: 		format(string, sizeof(string), "%i_v_color_2", vehicleid);
+			case v_paintjob: 		format(string, sizeof(string), "%i_v_paintjob", vehicleid);
+			case v_horn: 			format(string, sizeof(string), "%i_v_horn", vehicleid);
+			case v_damage<0>:		format(string, sizeof(string), "%i_v_damage_1", vehicleid);
+			case v_damage<1>: 		format(string, sizeof(string), "%i_v_damage_2", vehicleid);
+			case v_damage<2>: 		format(string, sizeof(string), "%i_v_damage_3", vehicleid);
+			case v_damage<3>: 		format(string, sizeof(string), "%i_v_damage_4", vehicleid);
+			case v_editor: 			format(string, sizeof(string), "%i_v_editor", vehicleid);
+			case v_spawn_interiorid:format(string, sizeof(string), "%i_v_spawn_interiorid", vehicleid);
+			case v_spawn_worldid: 	format(string, sizeof(string), "%i_v_spawn_worldid", vehicleid);
+			case v_spawn_uno_damage:format(string, sizeof(string), "%i_v_spawn_uno_damage", vehicleid);
+			case v_petrolcap:		format(string, sizeof(string), "%i_v_petrolcap", vehicleid);
+			case v_bomb:			format(string, sizeof(string), "%i_v_bomb", vehicleid);
+			case v_bomb_timer:		format(string, sizeof(string), "%i_v_bomb_timer", vehicleid);
+			case v_sticky:			format(string, sizeof(string), "%i_v_sticky", vehicleid);
+			case v_update_timer:	format(string, sizeof(string), "%i_v_update_timer", vehicleid);
+		}
+		return setproperty(.name = string, .value = set);
+	#endif
 }
-/********************************************************************************************************************************/
-static Float:gVehicleFloat[MAX_VEHICLES][gVFloat_t];
-static gPlayerEdit[MAX_PLAYERS] = INVALID_VEHICLE_ID;
-static gVehicleAttachedObject[MAX_VEHICLES][MAX_VEHICLE_ATTACHED_OBJECTS];
-/********************************************************************************************************************************/
-stock Vehicle_EncodeString(string[],size=sizeof(string))
+
+stock static Vehicle_GetPropertyInt(vehicleid, type)
+{
+	#if defined _gvar_included
+		switch(type)
+		{
+			case v_interior: 		return GetGVarInt("v_interior", vehicleid);
+			case v_color<0>: 		return GetGVarInt("v_color_1", vehicleid);
+			case v_color<1>: 		return GetGVarInt("v_color_2", vehicleid);
+			case v_paintjob: 		return GetGVarInt("v_paintjob", vehicleid);
+			case v_horn: 			return GetGVarInt("v_horn", vehicleid);
+			case v_damage<0>:		return GetGVarInt("v_damage_1", vehicleid);
+			case v_damage<1>: 		return GetGVarInt("v_damage_2", vehicleid);
+			case v_damage<2>: 		return GetGVarInt("v_damage_3", vehicleid);
+			case v_damage<3>: 		return GetGVarInt("v_damage_4", vehicleid);
+			case v_editor: 			return GetGVarInt("v_editor", vehicleid);
+			case v_spawn_interiorid:return GetGVarInt("v_spawn_interiorid", vehicleid);
+			case v_spawn_worldid: 	return GetGVarInt("v_spawn_worldid", vehicleid);
+			case v_spawn_uno_damage:return GetGVarInt("v_spawn_uno_damage", vehicleid);
+			case v_petrolcap:		return GetGVarInt("v_petrolcap", vehicleid);
+			case v_bomb:			return GetGVarInt("v_bomb", vehicleid);
+			case v_bomb_timer:		return GetGVarInt("v_bomb_timer", vehicleid);
+			case v_sticky:			return GetGVarInt("v_sticky", vehicleid);
+			case v_update_timer:	return GetGVarInt("v_update_timer", vehicleid);
+		}
+		return 0;
+	#else
+		new string[35];
+		switch(type)
+		{
+			case v_interior: 		format(string, sizeof(string), "%i_v_interior", vehicleid);
+			case v_color<0>: 		format(string, sizeof(string), "%i_v_color_1", vehicleid);
+			case v_color<1>: 		format(string, sizeof(string), "%i_v_color_2", vehicleid);
+			case v_paintjob: 		format(string, sizeof(string), "%i_v_paintjob", vehicleid);
+			case v_horn: 			format(string, sizeof(string), "%i_v_horn", vehicleid);
+			case v_damage<0>:		format(string, sizeof(string), "%i_v_damage_1", vehicleid);
+			case v_damage<1>: 		format(string, sizeof(string), "%i_v_damage_2", vehicleid);
+			case v_damage<2>: 		format(string, sizeof(string), "%i_v_damage_3", vehicleid);
+			case v_damage<3>: 		format(string, sizeof(string), "%i_v_damage_4", vehicleid);
+			case v_editor: 			format(string, sizeof(string), "%i_v_editor", vehicleid);
+			case v_spawn_interiorid:format(string, sizeof(string), "%i_v_spawn_interiorid", vehicleid);
+			case v_spawn_worldid: 	format(string, sizeof(string), "%i_v_spawn_worldid", vehicleid);
+			case v_spawn_uno_damage:format(string, sizeof(string), "%i_v_spawn_uno_damage", vehicleid);
+			case v_petrolcap:		format(string, sizeof(string), "%i_v_petrolcap", vehicleid);
+			case v_bomb:			format(string, sizeof(string), "%i_v_bomb", vehicleid);
+			case v_bomb_timer:		format(string, sizeof(string), "%i_v_bomb_timer", vehicleid);
+			case v_sticky:			format(string, sizeof(string), "%i_v_sticky", vehicleid);
+			case v_update_timer:	format(string, sizeof(string), "%i_v_update_timer", vehicleid);
+		}
+		return getproperty(.name = string);
+	#endif
+}
+
+stock static Vehicle_EncodeString(string[])
 {
 	new source[2];
-    for(new i; i < size; i++)
+    for(new i, j = strlen(string); i < j; i++)
     {
        source[0] = (source[0] + string[i]) 		% 65521;
        source[1] = (source[1] + source[0])     	% 65521;
     }
     return (source[1] << 16) + source[0];
 }
-stock Vehicle_SetPropertyInt(vehicleid, type, set)
-{
-	static string[26]; //Longest String Size + NULL + 4 (VID) = 26
-	format(string, sizeof(string),v_property_frmt_strings[type], vehicleid);
-	setproperty(.name = string, .value = set);
-	return true;
-}
-stock Vehicle_GetPropertyInt(vehicleid, type)
-{
-	static string[26];
-	format(string, sizeof(string),v_property_frmt_strings[type], vehicleid);
-	return getproperty(.name = string);
-}
-stock Vehicle_SetPropertyFloat(vehicleid, type, Float:set)
-{
-	static string[35];
-	format(string, sizeof(string),v_property_frmt_strings[type], vehicleid);
-	format(string[27],8, "%f", set);
-	return setproperty(.value = Vehicle_EncodeString(string), .string = string[27]);
-}
-stock Float:Vehicle_GetPropertyFloat(vehicleid, type)
-{
-	static string[35];
-	format(string, sizeof(string),v_property_frmt_strings[type], vehicleid);
-	getproperty(.value = Vehicle_EncodeString(string), .string = string[27]);
-	return floatstr(string[27]);
-}
-stock Vehicle_DeleteProperty(vehicleid, type)
-{
-	static string[26];
-	format(string, sizeof(string),v_property_frmt_strings[type], vehicleid);
 
-	if( v_spawn<0> < type < v_spawn<3>)	return deleteproperty(.value = Vehicle_EncodeString(string));
-	else	return deleteproperty(.name = string);
+stock static Vehicle_SetPropertyFloat(vehicleid, type, Float:set)
+{
+	#if defined _gvar_included
+		switch(type)
+		{
+			case v_speedcap: 	SetGVarFloat("v_speedcap",set,vehicleid);
+			case v_spawn<0>: 	SetGVarFloat("v_spawn_x",set,vehicleid);
+			case v_spawn<1>: 	SetGVarFloat("v_spawn_y",set,vehicleid);
+			case v_spawn<2>: 	SetGVarFloat("v_spawn_z",set,vehicleid);
+			case v_spawn<3>: 	SetGVarFloat("v_spawn_rotation",set,vehicleid);
+		}
+		return 1;
+	#else
+		new string[35];
+		switch(type)
+		{
+			case v_speedcap: 	format(string, sizeof(string), "%i_v_speedcap", vehicleid);
+			case v_spawn<0>: 	format(string, sizeof(string), "%i_v_spawn_x", vehicleid);
+			case v_spawn<1>: 	format(string, sizeof(string), "%i_v_spawn_y", vehicleid);
+			case v_spawn<2>: 	format(string, sizeof(string), "%i_v_spawn_z", vehicleid);
+			case v_spawn<3>: 	format(string, sizeof(string), "%i_v_spawn_rotation", vehicleid);
+		}
+		new value[8];
+		format(value, sizeof(value), "%f", set);
+		return setproperty(.value = Vehicle_EncodeString(string), .string = value);
+	#endif
 }
-/********************************************************************************************************************************/
+
+stock static Float:Vehicle_GetPropertyFloat(vehicleid, type)
+{
+	#if defined _gvar_included
+		switch(type)
+		{
+			case v_speedcap:	return GetGVarFloat("v_speedcap", vehicleid);
+			case v_spawn<0>:	return GetGVarFloat("v_spawn_x", vehicleid);
+			case v_spawn<1>:	return GetGVarFloat("v_spawn_y", vehicleid);
+			case v_spawn<2>:	return GetGVarFloat("v_spawn_z", vehicleid);
+			case v_spawn<3>:	return GetGVarFloat("v_spawn_rotation", vehicleid);
+		}
+		return 0.0;
+	#else
+		new string[35];
+		switch(type)
+		{
+			case v_speedcap: 	format(string, sizeof(string), "%i_v_speedcap", vehicleid);
+			case v_spawn<0>: 	format(string, sizeof(string), "%i_v_spawn_x", vehicleid);
+			case v_spawn<1>: 	format(string, sizeof(string), "%i_v_spawn_y", vehicleid);
+			case v_spawn<2>: 	format(string, sizeof(string), "%i_v_spawn_z", vehicleid);
+			case v_spawn<3>: 	format(string, sizeof(string), "%i_v_spawn_rotation", vehicleid);
+		}
+		new value[8];
+		getproperty(.value = Vehicle_EncodeString(string), .string = value);
+		return floatstr(value);
+	#endif
+}
+
+stock static Vehicle_DeleteProperty(vehicleid, type)
+{
+	#if defined _gvar_included
+		switch(type)
+		{
+			case v_interior: 			DeleteGVar("v_interior",vehicleid);
+			case v_color<0>: 			DeleteGVar("v_color_1", vehicleid);
+			case v_color<1>: 			DeleteGVar("v_color_2", vehicleid);
+			case v_paintjob: 			DeleteGVar("v_paintjob",vehicleid);
+			case v_horn: 				DeleteGVar("v_horn", vehicleid);
+			case v_damage<0>:			DeleteGVar("v_damage_1",vehicleid);
+			case v_damage<1>: 			DeleteGVar("v_damage_2",vehicleid);
+			case v_damage<2>: 			DeleteGVar("v_damage_3",vehicleid);
+			case v_damage<3>: 			DeleteGVar("v_damage_4",vehicleid);
+			case v_editor: 				DeleteGVar("v_editor", vehicleid);
+			case v_speedcap: 			DeleteGVar("v_speedcap",vehicleid);
+			case v_spawn<0>:			DeleteGVar("v_spawn_x", vehicleid);
+			case v_spawn<1>:			DeleteGVar("v_spawn_y", vehicleid);
+			case v_spawn<2>:			DeleteGVar("v_spawn_z", vehicleid);
+			case v_spawn<3>:			DeleteGVar("v_spawn_rotation", vehicleid);
+			case v_spawn<4>: 			DeleteGVar("v_spawn_interiorid", vehicleid);
+			case v_spawn<5>: 			DeleteGVar("v_spawn_worldid", vehicleid);
+			case v_spawn_uno_damage:	DeleteGVar("v_spawn_uno_damage", vehicleid);
+			case v_petrolcap:			DeleteGVar("v_petrolcap", vehicleid);
+			case v_bomb:				DeleteGVar("v_bomb", vehicleid);
+			case v_bomb_timer:			DeleteGVar("v_bomb_timer", vehicleid);
+			case v_sticky:				DeleteGVar("v_sticky", vehicleid);
+			case v_update_timer:		DeleteGVar("v_update_timer", vehicleid);
+		}
+		return 1;
+	#else
+		new string[35];
+		switch(type)
+		{
+			case v_interior: 	format(string, sizeof(string), "%i_v_interior", vehicleid);
+			case v_color<0>: 	format(string, sizeof(string), "%i_v_color_1", vehicleid);
+			case v_color<1>: 	format(string, sizeof(string), "%i_v_color_2", vehicleid);
+			case v_paintjob: 	format(string, sizeof(string), "%i_v_paintjob", vehicleid);
+			case v_horn: 		format(string, sizeof(string), "%i_v_horn", vehicleid);
+			case v_damage<0>:	format(string, sizeof(string), "%i_v_damage_1", vehicleid);
+			case v_damage<1>: 	format(string, sizeof(string), "%i_v_damage_2", vehicleid);
+			case v_damage<2>: 	format(string, sizeof(string), "%i_v_damage_3", vehicleid);
+			case v_damage<3>: 	format(string, sizeof(string), "%i_v_damage_4", vehicleid);
+			case v_editor: 		format(string, sizeof(string), "%i_v_editor", vehicleid);
+			case v_speedcap: 	format(string, sizeof(string), "%i_v_speedcap", vehicleid);
+			case v_spawn<0>:
+			{
+				format(string, sizeof(string), "%i_v_spawn_x", vehicleid);
+				return deleteproperty(.value = Vehicle_EncodeString(string));
+			}
+			case v_spawn<1>:
+			{
+				format(string, sizeof(string), "%i_v_spawn_y", vehicleid);
+				return deleteproperty(.value = Vehicle_EncodeString(string));
+			}
+			case v_spawn<2>:
+			{
+				format(string, sizeof(string), "%i_v_spawn_z", vehicleid);
+				return deleteproperty(.value = Vehicle_EncodeString(string));
+			}
+			case v_spawn<3>:
+			{
+				format(string, sizeof(string), "%i_v_spawn_rotation", vehicleid);
+				return deleteproperty(.value = Vehicle_EncodeString(string));
+			}
+			case v_spawn<4>: 	format(string, sizeof(string), "%i_v_spawn_interiorid", vehicleid);
+			case v_spawn<5>: 	format(string, sizeof(string), "%i_v_spawn_worldid", vehicleid);
+			case v_spawn_uno_damage:format(string, sizeof(string), "%i_v_spawn_uno_damage", vehicleid);
+			case v_petrolcap:	format(string, sizeof(string), "%i_v_petrolcap", vehicleid);
+			case v_bomb:		format(string, sizeof(string), "%i_v_bomb", vehicleid);
+			case v_bomb_timer:	format(string, sizeof(string), "%i_v_bomb_timer", vehicleid);
+			case v_sticky:		format(string, sizeof(string), "%i_v_sticky", vehicleid);
+			case v_update_timer:format(string, sizeof(string), "%i_v_update_timer", vehicleid);
+		}
+		return deleteproperty(.name = string);
+	#endif
+}
+
 stock Vehicle_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, color1 = -1, color2 = -1, respawn_delay = -1, addsiren = 0, worldid = 0, interiorid = 0, bool:unoccupied_damage = false)
 {
-    static vehicleid;
 	if(modelid < 400 || modelid > 610) return false;
 
 	if(	(color1 == -1 || color2 == -1) &&
-		gVehicleColors[(modelid - 400)][0])
+		gVehicleInfo[(modelid - 400)][Color][0])
 	{
-		if(gVehicleColors[(modelid - 400)][0] == 2)
+		if(gVehicleInfo[(modelid - 400)][Color][0] == 2)
 		{
-		    color1 = gVehicleColors[(modelid - 400)][1];
-		    color2 = gVehicleColors[(modelid - 400)][2];
+		    color1 = gVehicleInfo[(modelid - 400)][Color][1];
+		    color2 = gVehicleInfo[(modelid - 400)][Color][2];
 		}
 		else
 		{
-			new index = random(gVehicleColors[(modelid - 400)][0]) & -2;
+			new index = random(gVehicleInfo[(modelid - 400)][Color][0]) & -2;
 
-			color1 = gVehicleColors[(modelid - 400)][++index];
-			color2 = gVehicleColors[(modelid - 400)][++index];
+			color1 = gVehicleInfo[(modelid - 400)][Color][++index];
+			color2 = gVehicleInfo[(modelid - 400)][Color][++index];
 		}
 	}
 
+	new vehicleid;
 	switch(modelid)
 	{
 		case 569, 570, 537, 538: 	vehicleid = AddStaticVehicleEx(modelid, x, y, z, rotation, color1, color2, respawn_delay, addsiren);
-		default: 					vehicleid = CreateVehicle(modelid, x, y, z, rotation, color1, color2, respawn_delay, addsiren);
+		default: 					vehicleid = CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, color1, color2, respawn_delay, addsiren);
 	}
 
 	LinkVehicleToInterior(vehicleid, interiorid);
@@ -332,10 +638,10 @@ stock Vehicle_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, 
 
     Vehicle_SetPropertyInt(vehicleid, v_horn, 0);
 
-   	Vehicle_SetPropertyInt(vehicleid, v_damage<0>, 1);
-   	Vehicle_SetPropertyInt(vehicleid, v_damage<1>, 1);
-   	Vehicle_SetPropertyInt(vehicleid, v_damage<2>, 1);
-   	Vehicle_SetPropertyInt(vehicleid, v_damage<3>, 1);
+	for(new i; i < 4; i++)
+	{
+    	Vehicle_SetPropertyInt(vehicleid, v_damage<i>, 1);
+	}
 
 	Vehicle_SetPropertyInt(vehicleid, v_editor, INVALID_OBJECT_ID);
 
@@ -365,17 +671,19 @@ stock Vehicle_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, 
 
 	Vehicle_SetPropertyInt(vehicleid, v_update_timer, -1);
 
-	gVehicleFloat[vehicleid][VehicleSpawn_X] = x;
-	gVehicleFloat[vehicleid][VehicleSpawn_Y] = y;
-	gVehicleFloat[vehicleid][VehicleSpawn_Z] = z;
-	gVehicleFloat[vehicleid][VehicleSpawn_Rot] = rotation;
+	gVehicleDriver[vehicleid] = INVALID_PLAYER_ID;
 
-	gVehicleFloat[vehicleid][VehicleVel_X] =
-	gVehicleFloat[vehicleid][VehicleVel_Y] =
-	gVehicleFloat[vehicleid][Vehiclevel_Z] = 0.0;
+	gVehicleFloat[vehicleid][0] = x;
+	gVehicleFloat[vehicleid][1] = y;
+	gVehicleFloat[vehicleid][2] = z;
+	gVehicleFloat[vehicleid][3] = rotation;
 
-	gVehicleFloat[vehicleid][VehicleHealth] = 1000.0;
-	
+	gVehicleFloat[vehicleid][4] = 0.0;
+	gVehicleFloat[vehicleid][5] = 0.0;
+	gVehicleFloat[vehicleid][6] = 0.0;
+
+	gVehicleFloat[vehicleid][7] = 1000.0;
+
 	return vehicleid;
 }
 #if defined _ALS_CreateVehicle
@@ -402,11 +710,11 @@ stock Vehicle_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, 
 
 stock Vehicle_SetVehiclePos(vehicleid, Float:x, Float:y, Float:z)
 {
-	if(SetVehiclePos(vehicleid,x,y,z))
+	if(SetVehiclePos(vehicleid, Float:x, Float:y, Float:z))
 	{
-		gVehicleFloat[vehicleid][VehicleSpawn_X] = x;
-		gVehicleFloat[vehicleid][VehicleSpawn_Y] = y;
-		gVehicleFloat[vehicleid][VehicleSpawn_Z] = z;
+		gVehicleFloat[vehicleid][0] = x;
+		gVehicleFloat[vehicleid][1] = y;
+		gVehicleFloat[vehicleid][2] = z;
 		return true;
 	}
 	return false;
@@ -422,7 +730,7 @@ stock Vehicle_SetVehicleZAngle(vehicleid, Float:angle)
 {
 	if(SetVehicleZAngle(vehicleid, angle))
 	{
-		gVehicleFloat[vehicleid][VehicleSpawn_Rot] = angle;
+		gVehicleFloat[vehicleid][3] = angle;
 		return true;
 	}
 	return false;
@@ -438,7 +746,7 @@ stock Vehicle_DestroyVehicle(vehicleid)
 {
 	if(DestroyVehicle(vehicleid))
 	{
-		for(new i = GetPlayerPoolSize(); i != -1; i--)
+		for(new i; i <= GetPlayerPoolSize(); i++)
 		{
 			if(IsPlayerConnected(i))
 			{
@@ -448,6 +756,13 @@ stock Vehicle_DestroyVehicle(vehicleid)
 				}
 			}
 		}
+
+		if(gVehicleDriver[vehicleid] != INVALID_PLAYER_ID)
+        {
+            DeletePVar(gVehicleDriver[vehicleid],"p_driving_vid");
+            gVehicleDriver[vehicleid] = INVALID_PLAYER_ID;
+        }
+
 		DestroyObject(Vehicle_GetPropertyInt(vehicleid, v_editor));
 
 		Vehicle_DeleteProperty(vehicleid, v_interior);
@@ -495,6 +810,8 @@ stock Vehicle_DestroyVehicle(vehicleid)
 		Vehicle_DeleteProperty(vehicleid, v_sticky);
 
 		Vehicle_DeleteProperty(vehicleid, v_update_timer);
+
+		vehicleid = INVALID_VEHICLE_ID;
 	}
 	return true;
 }
@@ -508,7 +825,10 @@ stock Vehicle_DestroyVehicle(vehicleid)
 stock Vehicle_LinkVehicleToInterior(vehicleid, interiorid)
 {
 	if(LinkVehicleToInterior(vehicleid, interiorid))
-	  return Vehicle_SetPropertyInt(vehicleid, v_interior, interiorid);
+	{
+	    Vehicle_SetPropertyInt(vehicleid, v_interior, interiorid);
+		return true;
+	}
 	return false;
 }
 #if defined _ALS_LinkVehicleToInterior
@@ -523,26 +843,29 @@ stock Vehicle_LinkVehicleToInterior(vehicleid, interiorid)
 #endif
 //
 
-
+stock GetVehicleInterior(vehicleid)
+{
+	return Vehicle_GetPropertyInt(vehicleid, v_interior);
+}
 
 stock Vehicle_ChangeVehicleColor(vehicleid, color1, color2)
 {
 	new modelid = GetVehicleModel(vehicleid);
 
 	if(	(color1 == -1 || color2 == -1) &&
-		gVehicleColors[(modelid - 400)][0])
+		gVehicleInfo[(modelid - 400)][Color][0])
 	{
-		if(gVehicleColors[(modelid - 400)][0] == 2)
+		if(gVehicleInfo[(modelid - 400)][Color][0] == 2)
 		{
-		    color1 = gVehicleColors[(modelid - 400)][1];
-		    color2 = gVehicleColors[(modelid - 400)][2];
+		    color1 = gVehicleInfo[(modelid - 400)][Color][1];
+		    color2 = gVehicleInfo[(modelid - 400)][Color][2];
 		}
 		else
 		{
-			new index = random(gVehicleColors[(modelid - 400)][0]) & -2;
+			new index = random(gVehicleInfo[(modelid - 400)][Color][0]) & -2;
 
-			color1 = gVehicleColors[(modelid - 400)][++index];
-			color2 = gVehicleColors[(modelid - 400)][++index];
+			color1 = gVehicleInfo[(modelid - 400)][Color][++index];
+			color2 = gVehicleInfo[(modelid - 400)][Color][++index];
 		}
 	}
 
@@ -580,9 +903,9 @@ stock Vehicle_ChangeVehiclePaintjob(vehicleid, paintjobid)
 
 		if(paintjobid == 3)
 		{
-			new colors1,colors2;
-			GetVehicleColor(vehicleid, colors1, colors2);
-			ChangeVehicleColor(vehicleid, colors1, colors2);
+			new colors[2];
+			GetVehicleColor(vehicleid, colors[0], colors[1]);
+			ChangeVehicleColor(vehicleid, colors[0], colors[1]);
 		}
 		return true;
 	}
@@ -595,10 +918,15 @@ stock Vehicle_ChangeVehiclePaintjob(vehicleid, paintjobid)
 #endif
 #define ChangeVehiclePaintjob Vehicle_ChangeVehiclePaintjob
 
+stock GetVehiclePaintjob(vehicleid)
+{
+	return Vehicle_GetPropertyInt(vehicleid, v_paintjob);
+}
 
-#define GetVehiclePaintjob(%0) Vehicle_GetPropertyInt(%0, v_paintjob)
-#define RemoveVehiclePaintjob(%0) ChangeVehiclePaintjob(%0, 3)
-
+stock RemoveVehiclePaintjob(vehicleid)
+{
+	return ChangeVehiclePaintjob(vehicleid, 3);
+}
 
 public OnVehiclePaintjob(playerid, vehicleid, paintjobid)
 {
@@ -624,28 +952,28 @@ public OnVehicleSpawn(vehicleid)
 {
 	Vehicle_SetPropertyInt(vehicleid, v_paintjob, 3);
 
-	static colors1,colors2;
-	colors1 = Vehicle_GetPropertyInt(vehicleid, v_color<0>);
-	colors2 = Vehicle_GetPropertyInt(vehicleid, v_color<1>);
-	ChangeVehicleColor(vehicleid, colors1, colors2);
+	new colors[2];
+	colors[0] = Vehicle_GetPropertyInt(vehicleid, v_color<0>);
+	colors[1] = Vehicle_GetPropertyInt(vehicleid, v_color<1>);
+	ChangeVehicleColor(vehicleid, colors[0], colors[1]);
 
-	static Float:x,Float:y,Float:z;
-	GetVehiclePos(vehicleid,x,y,z);
+	new Float:pos[3];
+	GetVehiclePos(vehicleid, pos[0], pos[1], pos[2]);
 
-	static Float:angle;
+	new Float:angle;
 	GetVehicleZAngle(vehicleid, angle);
 
-	static Float:vehicle_pos_x,Float:vehicle_pos_y,Float:vehicle_pos_z, Float:vehicle_angle, vehicle_worldid, vehicle_interiorid;
-	GetVehicleSpawnInfo(vehicleid, vehicle_pos_x, vehicle_pos_y, vehicle_pos_z, vehicle_angle, vehicle_worldid, vehicle_interiorid);
+	new Float:vehicle_pos[3], Float:vehicle_angle, vehicle_worldid, vehicle_interiorid;
+	GetVehicleSpawnInfo(vehicleid, vehicle_pos[0], vehicle_pos[1], vehicle_pos[2], vehicle_angle, vehicle_worldid, vehicle_interiorid);
 
- 	if( x != vehicle_pos_x ||
-		y != vehicle_pos_y ||
-		z != vehicle_pos_z ||
+ 	if( pos[0] != vehicle_pos[0] ||
+		pos[1] != vehicle_pos[1] ||
+		pos[2] != vehicle_pos[2] ||
 		angle != vehicle_angle ||
 		vehicle_worldid != GetVehicleVirtualWorld(vehicleid) ||
 		vehicle_interiorid != GetVehicleInterior(vehicleid))
 	{
-	    TeleportVehicle(vehicleid, vehicle_pos_x, vehicle_pos_y, vehicle_pos_z, vehicle_angle, vehicle_worldid, vehicle_interiorid);
+	    TeleportVehicle(vehicleid, vehicle_pos[0], vehicle_pos[1], vehicle_pos[2], vehicle_angle, vehicle_worldid, vehicle_interiorid);
 	}
 
     #if defined Vehicle_OnVehicleSpawn
@@ -685,27 +1013,39 @@ public OnVehicleRespray(playerid, vehicleid, color1, color2)
 #endif
 #define OnVehicleRespray Vehicle_OnVehicleRespray
 
-#define SetVehicleHorn(%0,%1) Vehicle_SetPropertyInt(%0, v_horn, %1)
-#define GetVehicleHorn(%0) Vehicle_GetPropertyInt(%0, v_horn)
-#define RestoreVehicleHorn(%0) Vehicle_SetPropertyInt(%0, v_horn,0)
+stock SetVehicleHorn(vehicleid, soundid)
+{
+	Vehicle_SetPropertyInt(vehicleid, v_horn, soundid);
+	return true;
+}
+
+stock GetVehicleHorn(vehicleid)
+{
+	return Vehicle_GetPropertyInt(vehicleid, v_horn);
+}
+
+stock RestoreVehicleHorn(vehicleid)
+{
+	return SetVehicleHorn(vehicleid, 0);
+}
 
 public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {
-    static horn;
 	if(newkeys & KEY_CROUCH)
 	{
 	    if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER)
 	    {
-	        if((horn = Vehicle_GetPropertyInt(GetPlayerVehicleID(playerid), v_horn)))
+	        new horn = Vehicle_GetPropertyInt(GetPlayerVehicleID(playerid), v_horn);
+	        if(horn != 0)
 	        {
-				static Float:x,Float:y,Float:z;
-				GetPlayerPos(playerid,x,y,z);
+				new Float:pos[3];
+				GetPlayerPos(playerid, pos[0], pos[1], pos[2]);
 
-			    for(new i = GetPlayerPoolSize(); i != -1 ; i--)
+			    for(new i; i < MAX_PLAYERS; i++)
 			    {
-			        if(IsPlayerInRangeOfPoint(i, 35.0,x,y,z))
+			        if(IsPlayerInRangeOfPoint(i, 35.0, pos[0], pos[1], pos[2]))
 					{
-					    PlayerPlaySound(playerid, horn,x,y,z);
+					    PlayerPlaySound(playerid, horn, pos[0], pos[1], pos[2]);
 					}
 			    }
 		    }
@@ -740,11 +1080,16 @@ stock ToggleVehicleDamageUpdate(vehicleid, type, bool:toggle)
     return Vehicle_SetPropertyInt(vehicleid, v_damage<type>, _:toggle);
 }
 
+stock IsVehicleDamageToggled(vehicleid, type)
+{
+	return Vehicle_GetPropertyInt(vehicleid, v_damage<type>);
+}
+
 stock Vehicle_SetVehicleHealth(vehicleid, Float:health)
 {
     if(SetVehicleHealth(vehicleid, health))
 	{
-		gVehicleFloat[vehicleid][VehicleHealth] = health;
+		gVehicleFloat[vehicleid][7] = health;
 		return true;
 	}
 	return false;
@@ -758,7 +1103,7 @@ stock Vehicle_SetVehicleHealth(vehicleid, Float:health)
 
 stock UpdateVehicleDamageStatusEx(vehicleid, type, update)
 {
-	static panels, doors, lights, tires;
+	new panels, doors, lights, tires;
 	GetVehicleDamageStatus(vehicleid, panels, doors, lights, tires);
 
     switch(type)
@@ -773,7 +1118,7 @@ stock UpdateVehicleDamageStatusEx(vehicleid, type, update)
 
 stock GetVehicleDamageStatusEx(vehicleid, type)
 {
-	static panels, doors, lights, tires;
+	new panels, doors, lights, tires;
 	GetVehicleDamageStatus(vehicleid, panels, doors, lights, tires);
 
 	switch(type)
@@ -788,7 +1133,7 @@ stock GetVehicleDamageStatusEx(vehicleid, type)
 
 public OnVehicleDamageStatusUpdate(vehicleid, playerid)
 {
-	static panels, doors, lights, tires;
+	new panels, doors, lights, tires;
 	GetVehicleDamageStatus(vehicleid, panels, doors, lights, tires);
 
 	if(! IsVehicleDamageToggled(vehicleid, VEHICLE_DAMAGE_PANELS)) UpdateVehicleDamageStatusEx(vehicleid, VEHICLE_DAMAGE_PANELS, 0);
@@ -812,13 +1157,25 @@ public OnVehicleDamageStatusUpdate(vehicleid, playerid)
 #endif
 #define OnVehicleDamageStatusUpdate V_OnVehicleDamageStatusUpdate
 
-#define encode_lights(%0,%1,%2,%3) (%0 | (%1 << 1) | (%2 << 2) | (%3 << 3))
-#define encode_panels(%0,%1,%2,%3,%4,%5,%6) (%0 | (%1 << 4) | (%2 << 8) | (%3 << 12) | (%4 << 16) | (%5 << 20) | (%6 << 24))
-#define encode_doors(%0,%1,%2,%3,%4,%5) (%0 | (%1 << 8) | (%2 << 16) | (%3 << 24))
+stock static encode_lights(light1, light2, light3, light4)
+{
+	return light1 | (light2 << 1) | (light3 << 2) | (light4 << 3);
+}
+stock static encode_panels(flp, frp, rlp, rrp, windshield, front_bumper, rear_bumper)
+{
+	return flp | (frp << 4) | (rlp << 8) | (rrp << 12) | (windshield << 16) | (front_bumper << 20) | (rear_bumper << 24);
+}
+
+stock static encode_doors(bonnet, boot, driver_door, passenger_door, behind_driver_door, behind_passenger_door)
+{
+    #pragma unused behind_driver_door
+    #pragma unused behind_passenger_door
+    return bonnet | (boot << 8) | (driver_door << 16) | (passenger_door << 24);
+}
 
 stock static Vehicle_UpdateVehicleDamage(vehicleid, type)
 {
-    static panels, doors, lights, tires;
+    new panels, doors, lights, tires;
     GetVehicleDamageStatus(vehicleid, panels, doors, lights, tires);
     switch(type)
 	{
@@ -829,36 +1186,265 @@ stock static Vehicle_UpdateVehicleDamage(vehicleid, type)
     UpdateVehicleDamageStatus(vehicleid, panels, doors, lights, tires);
 	return 1;
 }
+
+public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY, Float:fZ)
+{
+    if(hittype == BULLET_HIT_TYPE_VEHICLE)
+    {
+        new Float:fHealth;
+        GetVehicleHealth(hitid, fHealth);
+
+		if(fHealth > (250 - 1))
+		{
+			new
+				fModelid = GetVehicleModel(hitid),
+				Float:fOffSet[3],
+				Float:fDamage
+			;
+
+			switch(GetPlayerWeapon(playerid))
+			{
+				case 22: fDamage = 40.0;
+				case 23: fDamage = 40.0;
+    			case 24: fDamage = 140.0;
+       			case 25: fDamage = 80.0;
+                case 26: fDamage = 80.0;
+                case 27: fDamage = 80.0;
+                case 28: fDamage = 25.0;
+                case 29: fDamage = 25.0;
+                case 30: fDamage = 30.0;
+                case 31: fDamage = 30.0;
+                case 32: fDamage = 25.0;
+                case 33: fDamage = 75.0;
+                case 34: fDamage = 125.0;
+                case 35: fDamage = 751.0;
+                case 36: fDamage = 751.0;
+                case 38: fDamage = 50.0;
+            }
+
+			//front wheels
+			GetVehicleModelInfo(fModelid, VEHICLE_MODEL_INFO_WHEELSFRONT, fOffSet[0], fOffSet[1], fOffSet[2]);
+   			//left
+			if(	fX >= fOffSet[0] - 2.4 &&
+				fX <= fOffSet[0] &&
+				fY >= fOffSet[1] - 0.4 &&
+				fY <= fOffSet[1] + 0.4 &&
+				fZ >= fOffSet[2] - 0.4 &&
+				fZ <= fOffSet[2] + 0.4)
+			{
+				if(	CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_FRONT_LEFT_WHEEL) ||
+					funcidx("OnPlayerShotVehicle") == -1)
+				{
+					if(IsUnoccupiedDamageToggled(hitid))
+					{
+						switch(GetVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES))
+						{
+						    case 0: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 8);
+						    case 1: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 9);
+						    case 2: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 10);
+						    case 3: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 11);
+						    case 4: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 12);
+						    case 5: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 13);
+						    case 6: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 14);
+						    case 7: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 15);
+						}
+						return 1;
+					}
+				}
+				else return 0;
+			}
+			//right
+			if(	fX >= fOffSet[0] - 0.4 &&
+				fX <= fOffSet[0] + 0.4 &&
+				fY >= fOffSet[1] - 0.4 &&
+				fY <= fOffSet[1] + 0.4 &&
+				fZ >= fOffSet[2] - 0.4 &&
+				fZ <= fOffSet[2] + 0.4)
+			{
+				if(	CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_FRONT_RIGHT_WHEEL)  ||
+					funcidx("OnPlayerShotVehicle") == -1)
+				{
+					if(IsUnoccupiedDamageToggled(hitid))
+					{
+						switch(GetVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES))
+						{
+						    case 0: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 2);
+						    case 1: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 3);
+						    case 4: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 6);
+						    case 5: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 7);
+						    case 8: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 10);
+						    case 9: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 11);
+						    case 12: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 14);
+						    case 13: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 15);
+						}
+						return 1;
+					}
+				}
+				else return 0;
+			}
+
+			//back wheels
+			GetVehicleModelInfo(fModelid, VEHICLE_MODEL_INFO_WHEELSREAR, fOffSet[0], fOffSet[1], fOffSet[2]);
+			//left
+			if(	fX >= fOffSet[0] - 2.4 &&
+				fX <= fOffSet[0] &&
+				fY >= fOffSet[1] - 0.4 &&
+				fY <= fOffSet[1] + 0.4 &&
+				fZ >= fOffSet[2] - 0.4 &&
+				fZ <= fOffSet[2] + 0.4)
+			{
+				if(	CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_BACK_LEFT_WHEEL) ||
+					funcidx("OnPlayerShotVehicle") == -1)
+				{
+					if(IsUnoccupiedDamageToggled(hitid))
+					{
+						switch(GetVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES))
+						{
+						    case 0: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 4);
+						    case 1: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 5);
+						    case 2: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 6);
+						    case 3: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 7);
+						    case 8: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 12);
+						    case 9: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 13);
+						    case 10: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 14);
+						    case 11: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 15);
+						}
+						return 1;
+					}
+				}
+				else return 0;
+			}
+			//right
+			if(	fX >= fOffSet[0] - 0.4 &&
+				fX <= fOffSet[0] + 0.4 &&
+				fY >= fOffSet[1] - 0.4 &&
+				fY <= fOffSet[1] + 0.4 &&
+				fZ >= fOffSet[2] - 0.4 &&
+				fZ <= fOffSet[2] + 0.4)
+			{
+				if(	CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_BACK_RIGHT_WHEEL) ||
+					funcidx("OnPlayerShotVehicle") == -1)
+				{
+					if(IsUnoccupiedDamageToggled(hitid))
+					{
+						switch(GetVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES))
+						{
+						    case 0: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 1);
+						    case 2: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 3);
+						    case 4: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 5);
+						    case 6: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 7);
+						    case 8: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 9);
+						    case 10: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 11);
+						    case 12: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 13);
+						    case 14: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 15);
+						}
+						return 1;
+					}
+				}
+				else return 0;
+			}
+
+			//petrol cap
+			fModelid -= 400;
+			if(	fX >= gVehicleInfo[fModelid][PetrolCapOffset][0] - 0.15 &&
+				fX <= gVehicleInfo[fModelid][PetrolCapOffset][0] + 0.15 &&
+				fY >= gVehicleInfo[fModelid][PetrolCapOffset][1] - 0.15 &&
+				fY <= gVehicleInfo[fModelid][PetrolCapOffset][1] + 0.15 &&
+				fZ >= gVehicleInfo[fModelid][PetrolCapOffset][2] - 0.15 &&
+				fZ <= gVehicleInfo[fModelid][PetrolCapOffset][2] + 0.15)
+			{
+				if(	CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_PETROLCAP) ||
+					funcidx("OnPlayerShotVehicle") == -1)
+				{
+					if(IsPetrolCapDestroyToggled(hitid))
+	    			{
+						if(	IsUnoccupiedDamageToggled(hitid) ||
+							IsVehicleOccupied(hitid))
+						{
+					        new Float:pos[3];
+	                        GetVehiclePos(hitid, pos[0], pos[1], pos[2]);
+	                        CreateExplosion(pos[0], pos[1], pos[2], 3, 25.0);
+	                        return SetVehicleToRespawn(hitid);
+					    }
+					}
+					else
+					{
+						fHealth -= fDamage;
+						SetVehicleHealth(hitid, fHealth);
+
+						switch(fHealth)
+						{
+						    case 251..399: return Vehicle_UpdateVehicleDamage(hitid, VEHICLE_DAMAGE_DOORS);
+						    case 400..599: return Vehicle_UpdateVehicleDamage(hitid, VEHICLE_DAMAGE_PANELS);
+						    case 600..700: return Vehicle_UpdateVehicleDamage(hitid, VEHICLE_DAMAGE_LIGHTS);
+						}
+					}
+				}
+				else return 0;
+			}
+
+			if(	CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_UNKNOWN) ||
+				funcidx("OnPlayerShotVehicle") == -1)
+			{
+			    if(IsUnoccupiedDamageToggled(hitid))
+			    {
+					fHealth -= fDamage;
+					SetVehicleHealth(hitid, fHealth);
+
+					switch(floatround(fHealth))
+					{
+					    case 251..399: return Vehicle_UpdateVehicleDamage(hitid, VEHICLE_DAMAGE_DOORS);
+					    case 400..599: return Vehicle_UpdateVehicleDamage(hitid, VEHICLE_DAMAGE_PANELS);
+					    case 600..700: return Vehicle_UpdateVehicleDamage(hitid, VEHICLE_DAMAGE_LIGHTS);
+					}
+				}
+			}
+			else return 0;
+		}
+	}
+
+	#if defined Vehicle_OnPlayerWeaponShot
+        return Vehicle_OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY, Float:fZ);
+    #else
+        return 1;
+    #endif
+}
+#if defined Vehicle_OnPlayerWeaponShot
+    forward Vehicle_OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY, Float:fZ);
+#endif
+#if defined _ALS_OnPlayerWeaponShot
+    #undef OnPlayerWeaponShot
+#else
+    #define _ALS_OnPlayerWeaponShot
+#endif
+#define OnPlayerWeaponShot Vehicle_OnPlayerWeaponShot
+
+forward OnPlayerShotVehicle(playerid, vehicleid, weaponid, Float:amount, bodypart);
+
 stock IsVehicleOccupied(vehicleid)
 {
-    for(new i = GetPlayerPoolSize(); i != -1 ; i--)
-        if(IsPlayerInVehicle(i, vehicleid))
+    for(new i, j = GetPlayerPoolSize(); i < j; i++)
+    {
+        if(IsPlayerConnected(i) && IsPlayerInVehicle(i, vehicleid))
 		{
 			return true;
         }
+    }
     return false;
 }
 
 stock GetVehicleDriverID(vehicleid)
 {
- 	for(new i = GetPlayerPoolSize(); i != -1 ; i--)
-    {
-        if(	GetPlayerVehicleID(i) == vehicleid &&
-			GetPlayerVehicleSeat(i) == 0)
-		{
-			return i
-        }
-    }
-	return INVALID_PLAYER_ID;
+	return gVehicleDriver[vehicleid];
 }
 
 stock EditVehicle(playerid, vehicleid)
 {
 	if(IsValidObject(Vehicle_GetPropertyInt(vehicleid, v_editor))) return false;
 
-	static Float:x,Float:y,Float:z;
-	GetVehiclePos(vehicleid,x,y,z);
-	Vehicle_SetPropertyInt(vehicleid, v_editor, CreateObject(19300,z,y,z, 0.0, 0.0, 0.0));
+	new Float:pos[3];
+	GetVehiclePos(vehicleid, pos[0], pos[1], pos[2]);
+	Vehicle_SetPropertyInt(vehicleid, v_editor, CreateObject(19300, pos[0], pos[1], pos[2], 0.0, 0.0, 0.0));
 
 	EditObject(playerid, Vehicle_GetPropertyInt(vehicleid, v_editor));
 
@@ -866,6 +1452,42 @@ stock EditVehicle(playerid, vehicleid)
 	return true;
 }
 
+#if ! defined IsValidVehicle
+	native IsValidVehicle(vehicleid);
+#endif
+
+public OnPlayerEditObject(playerid, playerobject, objectid, response, Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ)
+{
+	if(IsValidVehicle(gPlayerEdit[playerid]))
+	{
+	    if(Vehicle_GetPropertyInt(gPlayerEdit[playerid], v_editor) == objectid)
+	    {
+	        SetVehiclePos(gPlayerEdit[playerid], fX, fY, fZ);
+			SetVehicleZAngle(gPlayerEdit[playerid], fRotZ);
+
+			CallLocalFunction("OnPlayerEditVehicle", "iiiffff", playerid, gPlayerEdit[playerid], response, fX, fY, fZ, fRotZ);
+
+	        switch(response)
+	        {
+	            case EDIT_RESPONSE_CANCEL, EDIT_RESPONSE_FINAL:
+	            {
+					DestroyObject(objectid);
+					Vehicle_SetPropertyInt(gPlayerEdit[playerid], v_editor, INVALID_OBJECT_ID);
+
+					SetVehicleVelocity(gPlayerEdit[playerid], 0.0, 0.0, 0.0);
+
+					gPlayerEdit[playerid] = INVALID_VEHICLE_ID;
+	            }
+	        }
+	    }
+	}
+
+	#if defined Vehicle_OnPlayerEditObject
+        return Vehicle_OnPlayerEditObject(playerid, playerobject, objectid, response, Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ);
+    #else
+        return 1;
+    #endif
+}
 #if defined Vehicle_OnPlayerEditObject
     forward Vehicle_OnPlayerEditObject(playerid, playerobject, objectid, response, Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ);
 #endif
@@ -876,21 +1498,17 @@ stock EditVehicle(playerid, vehicleid)
 #endif
 #define OnPlayerEditObject Vehicle_OnPlayerEditObject
 
-#if defined OnPlayerEditVehicle
 forward OnPlayerEditVehicle(playerid, vehicleid, response, Float:fX, Float:fY, Float:fZ, Float:fRotZ);
-#endif
 
 stock GetVehicleName(vehicleid, string[], len = sizeof(string))
 {
-	string[0] = 0;
-	strcat(string, gVehicleNames[GetVehicleModel(vehicleid) - 400], len);
+	strcat(string, gVehicleInfo[GetVehicleModel(vehicleid) - 400][Name], len);
 	return true;
 }
 
 stock GetVehicleModelName(modelid, string[], len = sizeof(string))
 {
-	string[0] = 0;
-	strcat(string, gVehicleNames[modelid - 400], len);
+	strcat(string, gVehicleInfo[modelid - 400][Name], len);
 	return true;
 }
 
@@ -916,13 +1534,14 @@ stock GetVehicleParams(vehicleid, type)
 
 stock Float:GetVehicleSpeed(vehicleid, bool:kmh = true, Float:velx = 0.0, Float:vely = 0.0, Float:velz = 0.0)
 {
-    static Float:speed;
 	if(	velx == 0.0 &&
 		vely == 0.0 &&
 		velz == 0.0)
  	{
 		GetVehicleVelocity(vehicleid, velx, vely, velz);
 	}
+
+	new Float:speed;
 
 	if(kmh) speed = floatsqroot(((velx * velx) + (vely * vely)) + (velz * velz)) * 136.666667;
 	else 	speed = floatsqroot(((velx * velx) + (vely * vely)) + (velz * velz)) * 85.4166672;
@@ -970,12 +1589,14 @@ stock IsObjectAttachedToVehicle(objectid, vehicleid)
 stock GetVehicleSlotAttachedObject(vehicleid, slot)
 {
 	if(! IsValidObject(gVehicleAttachedObject[vehicleid][slot])) return -1;
+
 	return gVehicleAttachedObject[vehicleid][slot];
+
 }
 
 stock TeleportVehicle(vehicleid, Float:x, Float:y, Float:z, Float:rotation, worldid = -1, interiorid = -1)
 {
-	for(new i =  GetPlayerPoolSize(); i != -1; i--)
+	for(new i; i <= GetPlayerPoolSize(); i++)
 	{
 	    if(IsPlayerConnected(i))
 	    {
@@ -1015,6 +1636,108 @@ stock TeleportVehicle(vehicleid, Float:x, Float:y, Float:z, Float:rotation, worl
 	return true;
 }
 
+stock SetVehicleSpeedCap(vehicleid, Float:maxspeed)
+{
+    return Vehicle_SetPropertyFloat(vehicleid, v_speedcap, maxspeed);
+}
+
+stock Float:GetVehicleSpeedCap(vehicleid)
+{
+    return Vehicle_GetPropertyFloat(vehicleid, v_speedcap);
+}
+
+stock DisableVehicleSpeedCap(vehicleid)
+{
+	return SetVehicleSpeedCap(vehicleid, 0);
+}
+
+public OnPlayerUpdate(playerid)
+{
+ 	if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER)
+	{
+		new vehicleid;
+		vehicleid = GetPlayerVehicleID(playerid);
+
+		new Float:speedcap;
+		speedcap = GetVehicleSpeedCap(vehicleid);
+
+		new Float:vel[3];
+		GetVehicleVelocity(vehicleid, vel[0], vel[1], vel[2]);
+
+		new Float:speed;
+		speed = GetVehicleSpeed(vehicleid, true, vel[0], vel[1], vel[2]);
+
+		if(speedcap != 0.0)
+		{
+			if(speed > speedcap)
+			{
+			    if(	funcidx("OnPlayerReachSpeedCapLimit") == -1 ||
+					CallLocalFunction("OnPlayerReachSpeedCapLimit", "iif", playerid, vehicleid, speed))
+			    {
+					vel[0] = (vel[0] / speed) * speedcap;
+					vel[1] = (vel[1] / speed) * speedcap;
+					vel[2] = (vel[2] / speed) * speedcap;
+
+					SetVehicleVelocity(vehicleid, vel[0], vel[1], vel[2]);
+				}
+			}
+		}
+	}
+
+	#if defined Vehicle_OnPlayerUpdate
+        return Vehicle_OnPlayerUpdate(playerid);
+    #else
+        return 1;
+    #endif
+}
+#if defined Vehicle_OnPlayerUpdate
+    forward Vehicle_OnPlayerUpdate(playerid);
+#endif
+#if defined _ALS_OnPlayerUpdate
+    #undef OnPlayerUpdate
+#else
+    #define _ALS_OnPlayerUpdate
+#endif
+#define OnPlayerUpdate Vehicle_OnPlayerUpdate
+
+public OnPlayerDisconnect(playerid,reason)
+{
+ 	if(GetPVarType(playerid,"p_driving_vid") > 0)
+    {
+        new vehid = GetPVarInt(playerid,"p_driving_vid");
+        DeletePVar(playerid,"p_driving_vid");
+        if(gVehicleDriver[vehid] == playerid)
+        {
+            gVehicleDriver[vehid] = INVALID_PLAYER_ID;
+        }
+    }
+	#if defined Vehicle_OnPlayerDisconnect
+        return Vehicle_OnPlayerDisconnect(playerid,reason);
+    #else
+        return 1;
+    #endif
+}
+#if defined Vehicle_OnPlayerDisconnect
+    forward Vehicle_OnPlayerDisconnect(playerid,reason);
+#endif
+#if defined _ALS_OnPlayerDisconnect
+    #undef OnPlayerDisconnect
+#else
+    #define _ALS_OnPlayerDisconnect
+#endif
+#define OnPlayerDisconnect Vehicle_OnPlayerDisconnect
+
+forward OnPlayerReachSpeedCapLimit(playerid, vehicleid, Float:speed);
+
+stock GetVehicleTopSpeed(vehicleid)
+{
+	return gVehicleInfo[GetVehicleModel(vehicleid) - 400][TopSpeed];
+}
+
+stock GetVehicleModelTopSpeed(modelid)
+{
+	return gVehicleInfo[modelid - 400][TopSpeed];
+}
 
 stock SetVehicleSpawnInfo(vehicleid, Float:x, Float:y, Float:z, Float:rotation, worldid, interiorid)
 {
@@ -1040,6 +1763,26 @@ stock GetVehicleSpawnInfo(vehicleid, &Float:x, &Float:y, &Float:z, &Float:rotati
 	return true;
 }
 
+stock ToggleUnoccupiedVehicleDamage(vehicleid, bool:toggle)
+{
+	return Vehicle_SetPropertyInt(vehicleid, v_spawn_uno_damage, _:toggle);
+}
+
+stock IsUnoccupiedDamageToggled(vehicleid)
+{
+	return Vehicle_GetPropertyInt(vehicleid, v_spawn_uno_damage);
+}
+
+stock ToggleVehiclePetrolCapDestroy(vehicleid, bool:toggle)
+{
+	return Vehicle_SetPropertyInt(vehicleid, v_petrolcap, _:toggle);
+}
+
+stock IsPetrolCapDestroyToggled(vehicleid)
+{
+	return Vehicle_GetPropertyInt(vehicleid, v_petrolcap);
+}
+
 stock SetVehicleBomb(vehicleid, time = 1000)
 {
 	if(IsVehicleBombed(vehicleid))
@@ -1054,6 +1797,22 @@ stock SetVehicleBomb(vehicleid, time = 1000)
 	return Vehicle_SetPropertyInt(vehicleid, v_bomb, time);
 }
 
+stock GetVehicleBomb(vehicleid)
+{
+	return Vehicle_GetPropertyInt(vehicleid, v_bomb);
+}
+
+stock RemoveVehicleBomb(vehicleid)
+{
+	return SetVehicleBomb(vehicleid, 0);
+}
+
+stock IsVehicleBombed(vehicleid)
+{
+	if(GetVehicleBomb(vehicleid)) return true;
+	return false;
+}
+
 stock IsVehicleBombActivated(vehicleid)
 {
     if(IsVehicleBombed(vehicleid))
@@ -1065,311 +1824,7 @@ stock IsVehicleBombActivated(vehicleid)
     }
     return false;
 }
-/********************************************************************************************************************************/
-public OnPlayerEditObject(playerid, playerobject, objectid, response, Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ)
-{
-	if(IsValidVehicle(gPlayerEdit[playerid]))
-	{
-	    if(Vehicle_GetPropertyInt(gPlayerEdit[playerid], v_editor) == objectid)
-	    {
-	        SetVehiclePos(gPlayerEdit[playerid], fX, fY, fZ);
-			SetVehicleZAngle(gPlayerEdit[playerid], fRotZ);
 
-			#if defined OnPlayerEditVehicle
-			OnPlayerEditVehicle(playerid, gPlayerEdit[playerid], response, fX, fY, fZ, fRotZ);
-			#endif
-	        switch(response)
-	        {
-	            case EDIT_RESPONSE_CANCEL, EDIT_RESPONSE_FINAL:
-	            {
-					DestroyObject(objectid);
-					Vehicle_SetPropertyInt(gPlayerEdit[playerid], v_editor, INVALID_OBJECT_ID);
-
-					SetVehicleVelocity(gPlayerEdit[playerid], 0.0, 0.0, 0.0);
-
-					gPlayerEdit[playerid] = INVALID_VEHICLE_ID;
-	            }
-	        }
-	    }
-	}
-
-	#if defined Vehicle_OnPlayerEditObject
-        return Vehicle_OnPlayerEditObject(playerid, playerobject, objectid, response, Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ);
-    #else
-        return 1;
-    #endif
-}
-
-public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY, Float:fZ)
-{
-    static Float:fHealth;
-    if(hittype == BULLET_HIT_TYPE_VEHICLE)
-    {
-		if(fHealth > (250 - 1))
-		{
-			new	fModelid = GetVehicleModel(hitid);
-			static	Float:fOffSetX,Float:fOffSetY,Float:fOffSetZ;
-
-            GetVehicleHealth(hitid, fHealth);
-			//front wheels
-			GetVehicleModelInfo(fModelid, VEHICLE_MODEL_INFO_WHEELSFRONT, fOffSetX, fOffSetY, fOffSetZ);
-   			//left
-			if(	fX >= fOffSetX - 2.4 &&
-				fX <= fOffSetX &&
-				fY >= fOffSetY - 0.4 &&
-				fY <= fOffSetY + 0.4 &&
-				fZ >= fOffSetZ - 0.4 &&
-				fZ <= fOffSetZ + 0.4)
-			{
-			    #if defined OnPlayerShotVehicle
-			    if(OnPlayerShotVehicle(playerid, hitid, weaponid,gWeaponDamageOnVehicle[GetPlayerWeapon(playerid)-22], VEHICLE_BODYPART_FRONT_LEFT_WHEEL))
-			    {
-				#endif
-				    if(IsUnoccupiedDamageToggled(hitid))
-					{
-					    UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES,8+GetVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES));
-						return 1;
-					}
-				#if defined OnPlayerShotVehicle
-				}
-				else return 0;
-				#endif
-			}
-			//right
-			if(	fX >= fOffSetX - 0.4 &&
-				fX <= fOffSetX + 0.4 &&
-				fY >= fOffSetY - 0.4 &&
-				fY <= fOffSetY + 0.4 &&
-				fZ >= fOffSetZ - 0.4 &&
-				fZ <= fOffSetZ + 0.4)
-			{
-			    #if defined OnPlayerShotVehicle
-				if(OnPlayerShotVehicle(playerid, hitid, weaponid,gWeaponDamageOnVehicle[GetPlayerWeapon(playerid)-22], VEHICLE_BODYPART_FRONT_LEFT_WHEEL))
-				{
-				#endif
-					if(IsUnoccupiedDamageToggled(hitid))
-					{
-						switch(GetVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES))
-						{
-						    case 0: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 2);
-						    case 1: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 3);
-						    case 4: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 6);
-						    case 5: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 7);
-						    case 8: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 10);
-						    case 9: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 11);
-						    case 12: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 14);
-						    case 13: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 15);
-						}
-						return 1;
-					}
-				#if defined OnPlayerShotVehicle
-				}
-				else return 0;
-				#endif
-			}
-
-			//back wheels
-			GetVehicleModelInfo(fModelid, VEHICLE_MODEL_INFO_WHEELSREAR, fOffSetX, fOffSetY, fOffSetZ);
-			//left
-			if(	fX >= fOffSetX - 2.4 &&
-				fX <= fOffSetX &&
-				fY >= fOffSetY - 0.4 &&
-				fY <= fOffSetY + 0.4 &&
-				fZ >= fOffSetZ - 0.4 &&
-				fZ <= fOffSetZ + 0.4)
-			{
-				#if defined OnPlayerShotVehicle
-				if(OnPlayerShotVehicle(playerid, hitid, weaponid,gWeaponDamageOnVehicle[GetPlayerWeapon(playerid)-22], VEHICLE_BODYPART_FRONT_LEFT_WHEEL))
-				{
-				#endif
-					if(IsUnoccupiedDamageToggled(hitid))
-					{
-						switch(GetVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES))
-						{
-						    case 0: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 4);
-						    case 1: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 5);
-						    case 2: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 6);
-						    case 3: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 7);
-						    case 8: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 12);
-						    case 9: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 13);
-						    case 10: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 14);
-						    case 11: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 15);
-						}
-						return 1;
-					}
-				#if defined OnPlayerShotVehicle
-				}
-				else return 0;
-				#endif
-			}
-			//right
-			if(	fX >= fOffSetX - 0.4 &&
-				fX <= fOffSetX + 0.4 &&
-				fY >= fOffSetY - 0.4 &&
-				fY <= fOffSetY + 0.4 &&
-				fZ >= fOffSetZ - 0.4 &&
-				fZ <= fOffSetZ + 0.4)
-			{
-				#if defined OnPlayerShotVehicle
-				if(OnPlayerShotVehicle(playerid, hitid, weaponid,gWeaponDamageOnVehicle[GetPlayerWeapon(playerid)-22], VEHICLE_BODYPART_FRONT_LEFT_WHEEL))
-				{
-				#endif
-					if(IsUnoccupiedDamageToggled(hitid))
-					{
-						switch(GetVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES))
-						{
-						    case 0: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 1);
-						    case 2: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 3);
-						    case 4: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 5);
-						    case 6: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 7);
-						    case 8: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 9);
-						    case 10: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 11);
-						    case 12: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 13);
-						    case 14: UpdateVehicleDamageStatusEx(hitid, VEHICLE_DAMAGE_TIRES, 15);
-						}
-						return 1;
-					}
-                #if defined OnPlayerShotVehicle
-				}
-				else return 0;
-				#endif
-			}
-			new Float:fDamage = gWeaponDamageOnVehicle[GetPlayerWeapon(playerid)-22];
-			//petrol cap
-			fModelid -= 400;
-			if(	fX >= gVehiclePetrolCapOffsets[fModelid][0] - 0.15 &&
-				fX <= gVehiclePetrolCapOffsets[fModelid][0] + 0.15 &&
-				fY >= gVehiclePetrolCapOffsets[fModelid][1] - 0.15 &&
-				fY <= gVehiclePetrolCapOffsets[fModelid][1] + 0.15 &&
-				fZ >= gVehiclePetrolCapOffsets[fModelid][2] - 0.15 &&
-				fZ <= gVehiclePetrolCapOffsets[fModelid][2] + 0.15)
-			{
-
-				#if defined OnPlayerShotVehicle
-				if(OnPlayerShotVehicle(playerid, hitid, weaponid,fDamage, VEHICLE_BODYPART_FRONT_LEFT_WHEEL))
-				{
-				#endif
-					if(IsPetrolCapDestroyToggled(hitid))
-	    			{
-						if(	IsUnoccupiedDamageToggled(hitid) ||
-							IsVehicleOccupied(hitid))
-						{
-					        new Float:x,Float:y,Float:z;
-	                        GetVehiclePos(hitid, x,y,z);
-	                        CreateExplosion(z , y , z, 3, 25.0);
-	                        return SetVehicleToRespawn(hitid);
-					    }
-					}
-					else
-					{
-						fHealth -= fDamage;
-						SetVehicleHealth(hitid, fHealth);
-
-						switch(fHealth)
-						{
-						    case 251..399: return Vehicle_UpdateVehicleDamage(hitid, VEHICLE_DAMAGE_DOORS);
-						    case 400..599: return Vehicle_UpdateVehicleDamage(hitid, VEHICLE_DAMAGE_PANELS);
-						    case 600..700: return Vehicle_UpdateVehicleDamage(hitid, VEHICLE_DAMAGE_LIGHTS);
-						}
-					}
-				#if defined OnPlayerShotVehicle
-				}
-				else return 0;
-				#endif
-			}
-			#if defined OnPlayerShotVehicle
-			if(OnPlayerShotVehicle(playerid, hitid, weaponid,fDamage, VEHICLE_BODYPART_FRONT_LEFT_WHEEL))
-			{
-			#endif
-			    if(IsUnoccupiedDamageToggled(hitid))
-			    {
-					fHealth -= fDamage;
-					SetVehicleHealth(hitid, fHealth);
-
-					switch(floatround(fHealth))
-					{
-					    case 251..399: return Vehicle_UpdateVehicleDamage(hitid, VEHICLE_DAMAGE_DOORS);
-					    case 400..599: return Vehicle_UpdateVehicleDamage(hitid, VEHICLE_DAMAGE_PANELS);
-					    case 600..700: return Vehicle_UpdateVehicleDamage(hitid, VEHICLE_DAMAGE_LIGHTS);
-					}
-				}
-			#if defined OnPlayerShotVehicle
-			}
-			else return 0;
-			#endif
-		}
-	}
-
-	#if defined Vehicle_OnPlayerWeaponShot
-        return Vehicle_OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY, Float:fZ);
-    #else
-        return 1;
-    #endif
-}
-#if defined Vehicle_OnPlayerWeaponShot
-    forward Vehicle_OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY, Float:fZ);
-#endif
-#if defined _ALS_OnPlayerWeaponShot
-    #undef OnPlayerWeaponShot
-#else
-    #define _ALS_OnPlayerWeaponShot
-#endif
-#define OnPlayerWeaponShot Vehicle_OnPlayerWeaponShot
-
-public OnPlayerUpdate(playerid)
-{
-    static Float:x,Float:y,Float:z;
- 	if(GetPlayerState(playerid) == PLAYER_STATE_DRIVER)
-	{
-		new vehicleid = GetPlayerVehicleID(playerid);
-		GetVehicleVelocity(vehicleid, x,y,z);
-
-		new Float:speedcap = GetVehicleSpeedCap(vehicleid);
-		new Float:speed = GetVehicleSpeed(vehicleid, true, x,y,z);
-
-		if(speedcap != 0.0)
-		{
-			if(speed > speedcap)
-			{
-			    #if defined OnPlayerReachSpeedCapLimit
-			    if(CallLocalFunction("OnPlayerReachSpeedCapLimit", "iif", playerid, vehicleid, speed))
-			    {
-			    #endif
-					x = (x / speed) * speedcap;
-					y = (y / speed) * speedcap;
-					z = (z / speed) * speedcap;
-
-					SetVehicleVelocity(vehicleid, x,y,z);
-				#if defined OnPlayerReachSpeedCapLimit
-			    }
-			    #endif
-			}
-		}
-	}
-
-	#if defined Vehicle_OnPlayerUpdate
-        return Vehicle_OnPlayerUpdate(playerid);
-    #else
-        return 1;
-    #endif
-}
-#if defined Vehicle_OnPlayerUpdate
-    forward Vehicle_OnPlayerUpdate(playerid);
-#endif
-#if defined _ALS_OnPlayerUpdate
-    #undef OnPlayerUpdate
-#else
-    #define _ALS_OnPlayerUpdate
-#endif
-#define OnPlayerUpdate Vehicle_OnPlayerUpdate
-
-#if defined OnPlayerReachSpeedCapLimit
-forward OnPlayerReachSpeedCapLimit(playerid, vehicleid, Float:speed);
-#endif
-
-#if defined OnVehicleBombActivate
-forward OnVehicleBombActivate(vehicleid);
-#endif
 public OnPlayerStateChange(playerid, newstate, oldstate)
 {
 	if(newstate == PLAYER_STATE_DRIVER)
@@ -1380,10 +1835,9 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 		{
 		    if(! IsVehicleBombActivated(vehicleid))
 		    {
-		        #if defined OnVehicleBombActivate
-		        if(OnVehicleBombActivate(vehicleid))
+		        if(	CallLocalFunction("OnVehicleBombActivate", "i", vehicleid) ||
+					funcidx("OnVehicleBombActivate") == -1)
 		        {
-		        #endif
 		            new interval = (GetVehicleBomb(vehicleid) - 1750);
 		            if(interval < 1750)
 		            {
@@ -1394,9 +1848,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 		            {
 		        		Vehicle_SetPropertyInt(vehicleid, v_bomb_timer, SetTimerEx("Vehicle_OnVehicleBombActivate", interval, false, "ii", playerid, vehicleid));
 					}
-				#if defined OnVehicleBombActivate
-		        }
-		        #endif
+				}
 		    }
 		}
 
@@ -1404,7 +1856,25 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 		{
 		    SetVehicleParams(vehicleid, VEHICLE_PARAMS_ENGINE, VEHICLE_PARAMS_OFF);
 		}
+
+        SetPVarInt(playerid,"p_driving_vid",vehicleid);
+        gVehicleDriver[vehicleid] = playerid;
 	}
+    else
+    {
+        if(oldstate == PLAYER_STATE_DRIVER)
+        {
+            if(GetPVarType(playerid,"p_driving_vid") > 0)
+            {
+                new vehicleid = GetPVarInt(playerid,"p_driving_vid");
+                DeletePVar(playerid,"p_driving_vid");
+                if(gVehicleDriver[vehicleid] == playerid)
+                {
+                    gVehicleDriver[vehicleid] = INVALID_PLAYER_ID;
+                }
+            }
+        }
+    }
 
 	if(oldstate == PLAYER_STATE_DRIVER)
 	{
@@ -1432,6 +1902,8 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 #endif
 #define OnPlayerStateChange Vehicle_OnPlayerStateChange
 
+forward OnVehicleBombActivate(vehicleid);
+
 forward Vehicle_OnVehicleBombActivate(playerid, vehicleid);
 public Vehicle_OnVehicleBombActivate(playerid, vehicleid)
 {
@@ -1445,21 +1917,20 @@ public Vehicle_OnVehicleBombExplode(playerid, vehicleid)
 {
 	if(GetPlayerState(playerid) != PLAYER_STATE_DRIVER)
 	{
-	    #if defined OnVehicleBombDeactivate
-	        if(	!OnVehicleBombDeactivate(vehicleid))
-	    #endif
+	    if(	! CallLocalFunction("OnVehicleBombDeactivate", "i", vehicleid) ||
+			funcidx("OnVehicleBombDeactivate") == -1)
+		{
     		return SetVehicleParams(vehicleid, VEHICLE_PARAMS_ALARM, VEHICLE_PARAMS_OFF);
+		}
 	}
-
-	#if defined OnVehicleBombExpload
-	OnVehicleBombExplode(vehicleid);
-	#endif
 	
+	CallLocalFunction("OnVehicleBombExplode", "i", vehicleid);
+
 	SetVehicleParams(vehicleid, VEHICLE_PARAMS_ALARM, VEHICLE_PARAMS_OFF);
 
-	new Float:x,Float:y,Float:z;
-    GetVehiclePos(vehicleid, x,y,z);
-   	CreateExplosion(x,y,z, 3, 30.0);
+	new Float:pos[3];
+    GetVehiclePos(vehicleid, pos[0], pos[1], pos[2]);
+   	CreateExplosion(pos[0], pos[1], pos[2], 3, 30.0);
    	SetVehicleToRespawn(vehicleid);
 
    	if(GetPlayerVehicleID(playerid) == vehicleid)
@@ -1472,12 +1943,19 @@ public Vehicle_OnVehicleBombExplode(playerid, vehicleid)
 	return 1;
 }
 
-#if defined  OnVehicleBombDeactivate
 forward OnVehicleBombDeactivate(vehicleid);
-#endif
-#if defined OnVehicleStreamIn
 forward OnVehicleBombExplode(vehicleid);
-#endif
+
+stock ToggleVehicleSticky(vehicleid, bool:toggle)
+{
+    return Vehicle_SetPropertyInt(vehicleid, v_sticky, _:toggle);
+}
+
+stock IsVehicleSticky(vehicleid)
+{
+	return Vehicle_GetPropertyInt(vehicleid, v_sticky);
+}
+
 public OnVehicleStreamIn(vehicleid, forplayerid)
 {
 	if(Vehicle_GetPropertyInt(vehicleid, v_update_timer) == -1)
@@ -1505,7 +1983,7 @@ public OnVehicleStreamOut(vehicleid, forplayerid)
 {
 	if(Vehicle_GetPropertyInt(vehicleid, v_update_timer) != -1)
 	{
-	    for(new i = GetPlayerPoolSize(); i != -1; i--)
+	    for(new i; i <= GetPlayerPoolSize(); i++)
 	    {
 	        if(IsPlayerStreamedIn(vehicleid, i)) break;
 
@@ -1536,96 +2014,91 @@ public OnVehicleStreamOut(vehicleid, forplayerid)
 forward OnVehicleTimeUpdate(vehicleid);
 public OnVehicleTimeUpdate(vehicleid)
 {
-	new Float:x,Float:y,Float:z,Float:rot;
+	new Float:FloatData[4];
 
-	GetVehiclePos(vehicleid, x,y,z);
-	GetVehicleZAngle(vehicleid, rot);
+	GetVehiclePos(vehicleid, FloatData[0], FloatData[1], FloatData[2]);
+	GetVehicleZAngle(vehicleid, FloatData[3]);
 	if(IsVehicleSticky(vehicleid))
 	{
-	 	if(	(gVehicleFloat[vehicleid][VehicleSpawn_X] + 0.5 < x < gVehicleFloat[vehicleid][VehicleSpawn_X] - 0.5) ||
-			(gVehicleFloat[vehicleid][VehicleSpawn_Y] + 0.5 < y < gVehicleFloat[vehicleid][VehicleSpawn_Y] - 0.5) ||
-			(gVehicleFloat[vehicleid][VehicleSpawn_Z] + 0.5 < z < gVehicleFloat[vehicleid][VehicleSpawn_Z] - 0.5) ||
-			(gVehicleFloat[vehicleid][VehicleSpawn_Rot] + 0.5 < rot < gVehicleFloat[vehicleid][VehicleSpawn_Rot] - 0.5))
+	 	if(	(FloatData[0] > gVehicleFloat[vehicleid][0] + 0.5 || FloatData[0] < gVehicleFloat[vehicleid][0] - 0.5) ||
+			(FloatData[1] > gVehicleFloat[vehicleid][1] + 0.5 || FloatData[1] < gVehicleFloat[vehicleid][1] - 0.5) ||
+			(FloatData[2] > gVehicleFloat[vehicleid][2] + 0.5 || FloatData[2] < gVehicleFloat[vehicleid][2] - 0.5) ||
+			(FloatData[3] > gVehicleFloat[vehicleid][3] + 0.5 || FloatData[3] < gVehicleFloat[vehicleid][3] - 0.5))
 		{
-			return TeleportVehicle(vehicleid, gVehicleFloat[vehicleid][VehicleSpawn_X], gVehicleFloat[vehicleid][VehicleSpawn_Y], gVehicleFloat[vehicleid][VehicleSpawn_Z], gVehicleFloat[vehicleid][VehicleSpawn_Rot], GetVehicleInterior(vehicleid), GetVehicleVirtualWorld(vehicleid));
+			return TeleportVehicle(vehicleid, gVehicleFloat[vehicleid][0], gVehicleFloat[vehicleid][1], gVehicleFloat[vehicleid][2], gVehicleFloat[vehicleid][3], GetVehicleInterior(vehicleid), GetVehicleVirtualWorld(vehicleid));
  	 	}
     }
-    #if defined OnVehiclePosChange
-		if(	x != gVehicleFloat[vehicleid][VehicleSpawn_X] ||
-		    y != gVehicleFloat[vehicleid][VehicleSpawn_Y] ||
-		    z != gVehicleFloat[vehicleid][VehicleSpawn_Z] ||
-		    rot != gVehicleFloat[vehicleid][VehicleSpawn_Rot])
+	if(funcidx("OnVehiclePosChange") != -1)
+	{
+		if(	FloatData[0] != gVehicleFloat[vehicleid][0] ||
+		    FloatData[1] != gVehicleFloat[vehicleid][1] ||
+		    FloatData[2] != gVehicleFloat[vehicleid][2] ||
+		    FloatData[3] != gVehicleFloat[vehicleid][3])
 	 	{
-	 	    if(OnVehiclePosChange(vehicleid, x,y,z,rot, gVehicleFloat[vehicleid][VehicleSpawn_X], gVehicleFloat[vehicleid][VehicleSpawn_Y], gVehicleFloat[vehicleid][VehicleSpawn_Z], gVehicleFloat[vehicleid][VehicleSpawn_Rot]))
+	 	    if(CallLocalFunction("OnVehiclePosChange", "iffffffff", vehicleid, FloatData[0], FloatData[1], FloatData[2], FloatData[3], gVehicleFloat[vehicleid][0], gVehicleFloat[vehicleid][1], gVehicleFloat[vehicleid][2], gVehicleFloat[vehicleid][3]))
 	 	    {
-	 	        gVehicleFloat[vehicleid][VehicleSpawn_X] = x;
-			    gVehicleFloat[vehicleid][VehicleSpawn_Y] = y;
-			    gVehicleFloat[vehicleid][VehicleSpawn_Z] = z;
-			   	gVehicleFloat[vehicleid][VehicleSpawn_Rot] = rot;
+	 	        gVehicleFloat[vehicleid][0] = FloatData[0];
+			    gVehicleFloat[vehicleid][1] = FloatData[1];
+			    gVehicleFloat[vehicleid][2] = FloatData[2];
+			   	gVehicleFloat[vehicleid][3] = FloatData[3];
 	 	    }
 	 	    else
 	 	    {
 	 	        return TeleportVehicle(vehicleid, gVehicleFloat[vehicleid][0], gVehicleFloat[vehicleid][1], gVehicleFloat[vehicleid][2], gVehicleFloat[vehicleid][3], GetVehicleInterior(vehicleid), GetVehicleVirtualWorld(vehicleid));
 	 	    }
 		}
- 	#endif
+ 	}
 
-	
-	#if defined OnVehicleVelocityChange
-	GetVehicleVelocity(vehicleid, x,y,z);
-	 	if(	x != gVehicleFloat[vehicleid][VehicleSpawn_X] ||
-		    y != gVehicleFloat[vehicleid][VehicleSpawn_Y] ||
-		    z != gVehicleFloat[vehicleid][VehicleSpawn_Z])
+	GetVehicleVelocity(vehicleid, FloatData[0], FloatData[1], FloatData[2]);
+	if(funcidx("OnVehicleVelocityChange") != -1)
+ 	{
+	 	if(	FloatData[0] != gVehicleFloat[vehicleid][4] ||
+		    FloatData[1] != gVehicleFloat[vehicleid][5] ||
+		    FloatData[2] != gVehicleFloat[vehicleid][6])
  		{
-	 	    if(OnVehicleVelocityChange(vehicleid, x,y,z, gVehicleFloat[vehicleid][VehicleVel_X], gVehicleFloat[vehicleid][VehicleVel_Y], gVehicleFloat[vehicleid][VehicleVel_Z]))
+	 	    if(CallLocalFunction("OnVehicleVelocityChange", "iffffff", vehicleid, FloatData[0], FloatData[1], FloatData[2], gVehicleFloat[vehicleid][4], gVehicleFloat[vehicleid][5], gVehicleFloat[vehicleid][6]))
 	 	    {
-		 	    gVehicleFloat[vehicleid][VehicleVel_X] = x;
-				gVehicleFloat[vehicleid][VehicleVel_Y] = y;
-				gVehicleFloat[vehicleid][VehicleVel_Z] = z;
+		 	    gVehicleFloat[vehicleid][4] = FloatData[0];
+				gVehicleFloat[vehicleid][5] = FloatData[1];
+				gVehicleFloat[vehicleid][6] = FloatData[2];
 	 	    }
 	 	    else
 	 	    {
-	 	        return SetVehicleVelocity(vehicleid, gVehicleFloat[vehicleid][VehicleVel_X], gVehicleFloat[vehicleid][VehicleVel_Y], gVehicleFloat[vehicleid][VehicleVel_Z]);
+	 	        return SetVehicleVelocity(vehicleid, gVehicleFloat[vehicleid][4], gVehicleFloat[vehicleid][5], gVehicleFloat[vehicleid][6]);
 	 	    }
 		}
-	#endif
+	}
 
-	
- 	#if defined OnVehicleHealthChange
- 	GetVehicleHealth(vehicleid, x);
-	 	if(x != gVehicleFloat[vehicleid][VehicleHealth])
+	GetVehicleHealth(vehicleid, FloatData[0]);
+ 	if(funcidx("OnVehicleHealthChange") != -1)
+ 	{
+	 	if(FloatData[0] != gVehicleFloat[vehicleid][7])
 	 	{
-	 	    if(OnVehicleHealthChange(vehicleid, x, gVehicleFloat[vehicleid][VehicleHealth]))
+	 	    if(CallLocalFunction("OnVehicleHealthChange", "iff", vehicleid, FloatData[0], gVehicleFloat[vehicleid][7]))
 	 	    {
-				gVehicleFloat[vehicleid][VehicleHealth] = x;
+				gVehicleFloat[vehicleid][7] = FloatData[0];
 	 	    }
 	 	    else
 	 	    {
-				return SetVehicleHealth(vehicleid, gVehicleFloat[vehicleid][VehicleHealth]);
+				return SetVehicleHealth(vehicleid, gVehicleFloat[vehicleid][7]);
 	 	    }
 	 	}
-	#endif
+	}
 	return 1;
 }
 
-#if defined OnVehiclePosChange
 forward OnVehiclePosChange(vehicleid, Float:newx, Float:newy, Float:newz, Float:newrotation, Float:oldx, Float:oldy, Float:oldz, Float:oldrotation);
-#endif
-#if defined  OnVehicleVelocityChange
 forward OnVehicleVelocityChange(vehicleid, Float:newx, Float:newy, Float:newz, Float:oldx, Float:oldy, Float:oldz);
-#endif
-#if defined  OnVehicleHealthChange
 forward OnVehicleHealthChange(vehicleid, Float:newhealth, Float:oldhealth);
-#endif
-/********************************************************************************************************************************/
+
 stock CountAllVehicles()
 {
 	new count;
-	for(new i = GetVehiclePoolSize(); i != -1 ; i--)
+	for(new i; i <= GetVehiclePoolSize(); i++)
 	{
 		if(IsValidVehicle(i))
 		{
-			count++;
+			count += 1;
 		}
 	}
 	return count;
@@ -1633,13 +2106,14 @@ stock CountAllVehicles()
 
 stock DestroyAllVehicles()
 {
-	for(new i = GetVehiclePoolSize(); i != -1; i--)
+	new count;
+	for(new i; i <= GetVehiclePoolSize(); i++)
 	{
 		if(IsValidVehicle(i))
 		{
 			DestroyVehicle(i);
+			count++;
 		}
 	}
-	return true;
+	return count;
 }
-/********************************************************************************************************************************/
