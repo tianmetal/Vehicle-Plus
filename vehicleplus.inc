@@ -41,11 +41,11 @@ native Float:GetVehicleSpeed(vehicleid, bool:kmh = true, Float:velx = 0.0, Float
 native IsObjectAttachedToVehicle(objectid, vehicleid);
 native GetVehicleSlotAttachedObject(vehicleid, slot);
 native TeleportVehicle(vehicleid, Float:x, Float:y, Float:z, Float:rotation, worldid = -1, interiorid = -1);
-native SetVehicleSpeedCap(vehicleid, Float:maxspeed);
-native Float:GetVehicleSpeedCap(vehicleid);
+native SetVehicleSpeedCap(vehicleid, Float:maxspeed, bool:kmh = true);
+native Float:GetVehicleSpeedCap(vehicleid, bool:kmh = true);
 native DisableVehicleSpeedCap(vehicleid);
-native GetVehicleTopSpeed(vehicleid);
-native GetVehicleModelTopSpeed(modelid);
+native GetVehicleTopSpeed(vehicleid, bool:kmh = true);
+native GetVehicleModelTopSpeed(modelid, bool:kmh = true);
 native SetVehicleSpawnInfo(vehicleid, Float:x, Float:y, Float:z, Float:rotation, worldid, interiorid);
 native GetVehicleSpawnInfo(vehicleid, &Float:x, &Float:y, &Float:z, &Float:rotation, &worldid, &interiorid);
 native ToggleUnoccupiedVehicleDamage(vehicleid, bool:toggle);
@@ -105,6 +105,7 @@ public OnVehicleHealthChange(vehicleid, Float:newhealth, Float:oldhealth)
 static gPlayerEdit[MAX_PLAYERS] = INVALID_VEHICLE_ID;
 static gVehicleAttachedObject[MAX_VEHICLES][MAX_VEHICLE_ATTACHED_OBJECTS];
 static Float:gVehicleFloat[MAX_VEHICLES][4 + 3 + 1];
+static gVehicleSpeedCap[MAX_VEHICLES];
 static gVehicleDriver[MAX_VEHICLES];
 
 enum E_VEHICLE_INFO
@@ -338,16 +339,15 @@ static const gVehicleInfo[MAX_VEHICLE_MODELS][E_VEHICLE_INFO] =
 #define v_horn      		4
 #define v_damage<%1>    	(%1 + 5)
 #define v_editor      		9
-#define v_speedcap      	10
-#define v_spawn<%1>     	(%1 + 11)
-#define v_spawn_interiorid  15
-#define v_spawn_worldid  	16
-#define v_spawn_uno_damage  17
-#define v_petrolcap			18
-#define v_bomb			    19
-#define v_bomb_timer        20
-#define v_sticky            21
-#define v_update_timer      22
+#define v_spawn<%1>     	(%1 + 10)
+#define v_spawn_interiorid  14
+#define v_spawn_worldid  	15
+#define v_spawn_uno_damage  16
+#define v_petrolcap			17
+#define v_bomb			    18
+#define v_bomb_timer        19
+#define v_sticky            20
+#define v_update_timer      21
 
 stock static Vehicle_SetPropertyInt(vehicleid, type, set)
 {
@@ -469,7 +469,6 @@ stock static Vehicle_SetPropertyFloat(vehicleid, type, Float:set)
 	#if defined _gvar_included
 		switch(type)
 		{
-			case v_speedcap: 	SetGVarFloat("v_speedcap",set,vehicleid);
 			case v_spawn<0>: 	SetGVarFloat("v_spawn_x",set,vehicleid);
 			case v_spawn<1>: 	SetGVarFloat("v_spawn_y",set,vehicleid);
 			case v_spawn<2>: 	SetGVarFloat("v_spawn_z",set,vehicleid);
@@ -480,7 +479,6 @@ stock static Vehicle_SetPropertyFloat(vehicleid, type, Float:set)
 		new string[35];
 		switch(type)
 		{
-			case v_speedcap: 	format(string, sizeof(string), "%i_v_speedcap", vehicleid);
 			case v_spawn<0>: 	format(string, sizeof(string), "%i_v_spawn_x", vehicleid);
 			case v_spawn<1>: 	format(string, sizeof(string), "%i_v_spawn_y", vehicleid);
 			case v_spawn<2>: 	format(string, sizeof(string), "%i_v_spawn_z", vehicleid);
@@ -497,7 +495,6 @@ stock static Float:Vehicle_GetPropertyFloat(vehicleid, type)
 	#if defined _gvar_included
 		switch(type)
 		{
-			case v_speedcap:	return GetGVarFloat("v_speedcap", vehicleid);
 			case v_spawn<0>:	return GetGVarFloat("v_spawn_x", vehicleid);
 			case v_spawn<1>:	return GetGVarFloat("v_spawn_y", vehicleid);
 			case v_spawn<2>:	return GetGVarFloat("v_spawn_z", vehicleid);
@@ -508,7 +505,6 @@ stock static Float:Vehicle_GetPropertyFloat(vehicleid, type)
 		new string[35];
 		switch(type)
 		{
-			case v_speedcap: 	format(string, sizeof(string), "%i_v_speedcap", vehicleid);
 			case v_spawn<0>: 	format(string, sizeof(string), "%i_v_spawn_x", vehicleid);
 			case v_spawn<1>: 	format(string, sizeof(string), "%i_v_spawn_y", vehicleid);
 			case v_spawn<2>: 	format(string, sizeof(string), "%i_v_spawn_z", vehicleid);
@@ -535,7 +531,6 @@ stock static Vehicle_DeleteProperty(vehicleid, type)
 			case v_damage<2>: 			DeleteGVar("v_damage_3",vehicleid);
 			case v_damage<3>: 			DeleteGVar("v_damage_4",vehicleid);
 			case v_editor: 				DeleteGVar("v_editor", vehicleid);
-			case v_speedcap: 			DeleteGVar("v_speedcap",vehicleid);
 			case v_spawn<0>:			DeleteGVar("v_spawn_x", vehicleid);
 			case v_spawn<1>:			DeleteGVar("v_spawn_y", vehicleid);
 			case v_spawn<2>:			DeleteGVar("v_spawn_z", vehicleid);
@@ -564,7 +559,6 @@ stock static Vehicle_DeleteProperty(vehicleid, type)
 			case v_damage<2>: 	format(string, sizeof(string), "%i_v_damage_3", vehicleid);
 			case v_damage<3>: 	format(string, sizeof(string), "%i_v_damage_4", vehicleid);
 			case v_editor: 		format(string, sizeof(string), "%i_v_editor", vehicleid);
-			case v_speedcap: 	format(string, sizeof(string), "%i_v_speedcap", vehicleid);
 			case v_spawn<0>:
 			{
 				format(string, sizeof(string), "%i_v_spawn_x", vehicleid);
@@ -650,8 +644,6 @@ stock Vehicle_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, 
 	    gVehicleAttachedObject[vehicleid][i] = INVALID_OBJECT_ID;
 	}
 
-	Vehicle_SetPropertyFloat(vehicleid, v_speedcap, 0.0);
-
 	Vehicle_SetPropertyFloat(vehicleid, v_spawn<0>, x);
 	Vehicle_SetPropertyFloat(vehicleid, v_spawn<1>, y);
 	Vehicle_SetPropertyFloat(vehicleid, v_spawn<2>, z);
@@ -672,6 +664,7 @@ stock Vehicle_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, 
 	Vehicle_SetPropertyInt(vehicleid, v_update_timer, -1);
 
 	gVehicleDriver[vehicleid] = INVALID_PLAYER_ID;
+	gVehicleSpeedCap[vehicleid] = 0;
 
 	gVehicleFloat[vehicleid][0] = x;
 	gVehicleFloat[vehicleid][1] = y;
@@ -762,6 +755,7 @@ stock Vehicle_DestroyVehicle(vehicleid)
             DeletePVar(gVehicleDriver[vehicleid],"p_driving_vid");
             gVehicleDriver[vehicleid] = INVALID_PLAYER_ID;
         }
+        gVehicleSpeedCap[vehicleid] = 0;
 
 		DestroyObject(Vehicle_GetPropertyInt(vehicleid, v_editor));
 
@@ -789,8 +783,6 @@ stock Vehicle_DestroyVehicle(vehicleid)
 			 	gVehicleAttachedObject[vehicleid][i] = INVALID_OBJECT_ID;
 		 	}
 		}
-
-		Vehicle_DeleteProperty(vehicleid, v_speedcap);
 
 		Vehicle_DeleteProperty(vehicleid, v_spawn<0>);
 		Vehicle_DeleteProperty(vehicleid, v_spawn<1>);
@@ -1636,14 +1628,15 @@ stock TeleportVehicle(vehicleid, Float:x, Float:y, Float:z, Float:rotation, worl
 	return true;
 }
 
-stock SetVehicleSpeedCap(vehicleid, Float:maxspeed)
+stock SetVehicleSpeedCap(vehicleid, Float:maxspeed, bool:kmh = true)
 {
-    return Vehicle_SetPropertyFloat(vehicleid, v_speedcap, maxspeed);
+	gVehicleSpeedCap[vehicleid] = floatround((kmh ? maxspeed : (maxspeed * 1.60934));
+	return 1;
 }
 
-stock Float:GetVehicleSpeedCap(vehicleid)
+stock Float:GetVehicleSpeedCap(vehicleid, bool:kmh = true)
 {
-    return Vehicle_GetPropertyFloat(vehicleid, v_speedcap);
+	return (kmh ? float(gVehicleSpeedCap[vehicleid]) : (float(gVehicleSpeedCap[vehicleid]) * 0.621371));
 }
 
 stock DisableVehicleSpeedCap(vehicleid)
@@ -1729,14 +1722,15 @@ public OnPlayerDisconnect(playerid,reason)
 
 forward OnPlayerReachSpeedCapLimit(playerid, vehicleid, Float:speed);
 
-stock GetVehicleTopSpeed(vehicleid)
+stock GetVehicleModelTopSpeed(modelid, bool:kmh = true)
 {
-	return gVehicleInfo[GetVehicleModel(vehicleid) - 400][TopSpeed];
+
+	return (kmh ? gVehicleInfo[(modelid - 400)][TopSpeed] : floatround(float(gVehicleInfo[modelid - 400][TopSpeed]) * 0.621371));
 }
 
-stock GetVehicleModelTopSpeed(modelid)
+stock GetVehicleTopSpeed(vehicleid, bool:kmh = true)
 {
-	return gVehicleInfo[modelid - 400][TopSpeed];
+	return GetVehicleModelTopSpeed(GetVehicleModel(vehicleid),kmh);
 }
 
 stock SetVehicleSpawnInfo(vehicleid, Float:x, Float:y, Float:z, Float:rotation, worldid, interiorid)
