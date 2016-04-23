@@ -122,6 +122,13 @@ static gVehicleSpeedCap[MAX_VEHICLES];
 static gVehicleDriver[MAX_VEHICLES];
 static bool:gVehicleIsSticky[MAX_VEHICLES];
 
+#if defined _INC_y_timers
+	static Timer:VehicleTimer;
+#else
+	static VehicleTimer;
+	forward Vehicle_UpdateTimer();
+#endif
+
 enum E_VEHICLE_INFO
 {
 	Name[18],
@@ -372,8 +379,19 @@ public OnGameModeInit()
 	HasOnVehiclePosChange = funcidx("OnVehiclePosChange");
 	HasOnVehicleVelocityChange = funcidx("OnVehicleVelocityChange");
 	HasOnVehicleHealthChange = funcidx("OnVehicleHealthChange");
-	HasOnVehicleUpdate = funcidx("HasOnVehicleUpdate");
-	return 1;
+	HasOnVehicleUpdate = funcidx("OnVehicleUpdate");
+
+	#if defined _INC_y_timers
+		VehicleTimer = repeat Vehicle_UpdateTimer();
+	#else
+		VehicleTimer = SetTimer("Vehicle_UpdateTimer",VEHICLE_UPDATE_INTERVAL,1);
+	#endif
+
+	#if defined Vehicle_OnGameModeInit
+        return Vehicle_OnGameModeInit();
+    #else
+        return 1;
+    #endif
 }
 #if defined Vehicle_OnGameModeInit
     forward Vehicle_OnGameModeInit();
@@ -384,6 +402,30 @@ public OnGameModeInit()
     #define _ALS_OnGameModeInit
 #endif
 #define OnGameModeInit Vehicle_OnGameModeInit
+
+public OnGameModeExit()
+{
+	#if defined _INC_y_timers
+		stop VehicleTimer;
+	#else
+		KillTimer(VehicleTimer);
+	#endif
+
+	#if defined Vehicle_OnGameModeExit
+        return Vehicle_OnGameModeExit();
+    #else
+        return 1;
+    #endif
+}
+#if defined Vehicle_OnGameModeExit
+    forward Vehicle_OnGameModeExit();
+#endif
+#if defined _ALS_OnGameModeExit
+    #undef OnGameModeExit
+#else
+    #define _ALS_OnGameModeExit
+#endif
+#define OnGameModeExit Vehicle_OnGameModeExit
 
 stock static Vehicle_SetPropertyInt(vehicleid, type, set)
 {
@@ -779,6 +821,11 @@ stock Vehicle_DestroyVehicle(vehicleid)
 			}
 		}
 
+		if(Vehicle_GetPropertyInt(vehicleid, v_update_timer) != -1)
+		{
+			KillTimer(Vehicle_GetPropertyInt(vehicleid, v_update_timer));
+		}
+
 		if(gVehicleDriver[vehicleid] != INVALID_PLAYER_ID)
         {
             DeletePVar(gVehicleDriver[vehicleid],"p_driving_vid");
@@ -1005,6 +1052,17 @@ public OnVehicleSpawn(vehicleid)
 		vehicle_interiorid != GetVehicleInterior(vehicleid))
 	{
 	    TeleportVehicle(vehicleid, vehicle_pos[0], vehicle_pos[1], vehicle_pos[2], vehicle_angle, vehicle_worldid, vehicle_interiorid);
+	    gVehicleFloat[vehicleid][0] = vehicle_pos[0];
+		gVehicleFloat[vehicleid][1] = vehicle_pos[1];
+		gVehicleFloat[vehicleid][2] = vehicle_pos[2];
+		gVehicleFloat[vehicleid][3] = vehicle_angle;
+	}
+	else
+	{
+		gVehicleFloat[vehicleid][0] = pos[0];
+		gVehicleFloat[vehicleid][1] = pos[1];
+		gVehicleFloat[vehicleid][2] = pos[2];
+		gVehicleFloat[vehicleid][3] = angle;
 	}
 
     #if defined Vehicle_OnVehicleSpawn
@@ -1725,13 +1783,13 @@ stock TeleportVehicle(vehicleid, Float:x, Float:y, Float:z, Float:rotation, worl
 
 stock SetVehicleSpeedCap(vehicleid, Float:maxspeed, bool:kmh = true)
 {
-	gVehicleSpeedCap[vehicleid] = floatround((kmh ? maxspeed : (maxspeed * 1.60934)));
+	gVehicleSpeedCap[vehicleid] = floatround((kmh ? maxspeed : (maxspeed * 1.5999)));
 	return 1;
 }
 
 stock Float:GetVehicleSpeedCap(vehicleid, bool:kmh = true)
 {
-	return (kmh ? float(gVehicleSpeedCap[vehicleid]) : (float(gVehicleSpeedCap[vehicleid]) * 0.621371));
+	return (kmh ? float(gVehicleSpeedCap[vehicleid]) : (float(gVehicleSpeedCap[vehicleid]) * 0.6250));
 }
 
 stock DisableVehicleSpeedCap(vehicleid)
@@ -1819,7 +1877,7 @@ forward OnPlayerReachSpeedCapLimit(playerid, vehicleid, Float:speed);
 stock GetVehicleModelTopSpeed(modelid, bool:kmh = true)
 {
 
-	return (kmh ? gVehicleInfo[(modelid - 400)][TopSpeed] : floatround(float(gVehicleInfo[modelid - 400][TopSpeed]) * 0.621371));
+	return (kmh ? gVehicleInfo[(modelid - 400)][TopSpeed] : floatround(float(gVehicleInfo[modelid - 400][TopSpeed]) * 0.6250));
 }
 
 stock GetVehicleTopSpeed(vehicleid, bool:kmh = true)
@@ -2043,7 +2101,7 @@ stock IsVehicleSticky(vehicleid)
 	return (gVehicleIsSticky[vehicleid]);
 }
 
-public OnVehicleStreamIn(vehicleid, forplayerid)
+/*public OnVehicleStreamIn(vehicleid, forplayerid)
 {
 	if(Vehicle_GetPropertyInt(vehicleid, v_update_timer) == -1)
 	{
@@ -2070,11 +2128,11 @@ public OnVehicleStreamOut(vehicleid, forplayerid)
 {
 	if(Vehicle_GetPropertyInt(vehicleid, v_update_timer) != -1)
 	{
-	    for(new i; i <= GetPlayerPoolSize(); i++)
+	    for(new i,j = GetPlayerPoolSize(); i <= j; i++)
 	    {
 	        if(IsPlayerStreamedIn(vehicleid, i)) break;
 
-			if(i == GetPlayerPoolSize())
+			if(i == j)
 			{
 				KillTimer(Vehicle_GetPropertyInt(vehicleid, v_update_timer));
 				Vehicle_SetPropertyInt(vehicleid, v_update_timer, -1);
@@ -2096,86 +2154,98 @@ public OnVehicleStreamOut(vehicleid, forplayerid)
 #else
     #define _ALS_OnVehicleStreamOut
 #endif
-#define OnVehicleStreamOut Vehicle_OnVehicleStreamOut
+#define OnVehicleStreamOut Vehicle_OnVehicleStreamOut*/
 
-forward OnVehicleTimeUpdate(vehicleid);
-public OnVehicleTimeUpdate(vehicleid)
+#if defined _INC_y_timers
+timer Vehicle_UpdateTimer[VEHICLE_UPDATE_INTERVAL]()
+#else
+public Vehicle_UpdateTimer()
+#endif
 {
 	new Float:FloatData[4];
-	if(IsVehicleSticky(vehicleid))
+	#if defined _Y_ITERATE_LOCAL_VERSION
+	foreach(new vehicleid : Vehicle)
 	{
-		GetVehiclePos(vehicleid, FloatData[0], FloatData[1], FloatData[2]);
-		GetVehicleZAngle(vehicleid, FloatData[3]);
-	 	if(	(FloatData[0] > gVehicleFloat[vehicleid][0] + 0.5 || FloatData[0] < gVehicleFloat[vehicleid][0] - 0.5) ||
-			(FloatData[1] > gVehicleFloat[vehicleid][1] + 0.5 || FloatData[1] < gVehicleFloat[vehicleid][1] - 0.5) ||
-			(FloatData[2] > gVehicleFloat[vehicleid][2] + 0.5 || FloatData[2] < gVehicleFloat[vehicleid][2] - 0.5) ||
-			(FloatData[3] > gVehicleFloat[vehicleid][3] + 0.5 || FloatData[3] < gVehicleFloat[vehicleid][3] - 0.5))
+	#else
+	for(new vehicleid = 1, size = GetVehiclePoolSize(); vehicleid < size; vehicleid++)
+	{
+		if(GetVehicleModel(vehicleid) == 0) continue;
+	#endif
+		if(IsVehicleSticky(vehicleid))
 		{
-			TeleportVehicle(vehicleid, gVehicleFloat[vehicleid][0], gVehicleFloat[vehicleid][1], gVehicleFloat[vehicleid][2], gVehicleFloat[vehicleid][3], GetVehicleInterior(vehicleid), GetVehicleVirtualWorld(vehicleid));
- 	 	}
-    }
-	if(HasOnVehiclePosChange != -1 && !IsVehicleSticky(vehicleid))
-	{
-		GetVehiclePos(vehicleid, FloatData[0], FloatData[1], FloatData[2]);
-		GetVehicleZAngle(vehicleid, FloatData[3]);
-		if(	FloatData[0] != gVehicleFloat[vehicleid][0] ||
-		    FloatData[1] != gVehicleFloat[vehicleid][1] ||
-		    FloatData[2] != gVehicleFloat[vehicleid][2] ||
-		    FloatData[3] != gVehicleFloat[vehicleid][3])
-	 	{
-	 	    if(CallLocalFunction("OnVehiclePosChange", "iffffffff", vehicleid, FloatData[0], FloatData[1], FloatData[2], FloatData[3], gVehicleFloat[vehicleid][0], gVehicleFloat[vehicleid][1], gVehicleFloat[vehicleid][2], gVehicleFloat[vehicleid][3]))
-	 	    {
-	 	        gVehicleFloat[vehicleid][0] = FloatData[0];
-			    gVehicleFloat[vehicleid][1] = FloatData[1];
-			    gVehicleFloat[vehicleid][2] = FloatData[2];
-			   	gVehicleFloat[vehicleid][3] = FloatData[3];
-	 	    }
-	 	    else
-	 	    {
-	 	        TeleportVehicle(vehicleid, gVehicleFloat[vehicleid][0], gVehicleFloat[vehicleid][1], gVehicleFloat[vehicleid][2], gVehicleFloat[vehicleid][3], GetVehicleInterior(vehicleid), GetVehicleVirtualWorld(vehicleid));
-	 	    }
-		}
- 	}
-
-	if(HasOnVehicleVelocityChange != -1 && !IsVehicleSticky(vehicleid))
- 	{
- 		GetVehicleVelocity(vehicleid, FloatData[0], FloatData[1], FloatData[2]);
-	 	if(	FloatData[0] != gVehicleFloat[vehicleid][4] ||
-		    FloatData[1] != gVehicleFloat[vehicleid][5] ||
-		    FloatData[2] != gVehicleFloat[vehicleid][6])
- 		{
-	 	    if(CallLocalFunction("OnVehicleVelocityChange", "iffffff", vehicleid, FloatData[0], FloatData[1], FloatData[2], gVehicleFloat[vehicleid][4], gVehicleFloat[vehicleid][5], gVehicleFloat[vehicleid][6]))
-	 	    {
-		 	    gVehicleFloat[vehicleid][4] = FloatData[0];
-				gVehicleFloat[vehicleid][5] = FloatData[1];
-				gVehicleFloat[vehicleid][6] = FloatData[2];
-	 	    }
-	 	    else
-	 	    {
-	 	        SetVehicleVelocity(vehicleid, gVehicleFloat[vehicleid][4], gVehicleFloat[vehicleid][5], gVehicleFloat[vehicleid][6]);
-	 	    }
-		}
-	}
-
-	GetVehicleHealth(vehicleid, FloatData[0]);
- 	if(HasOnVehicleHealthChange != -1)
- 	{
-	 	if(FloatData[0] != gVehicleFloat[vehicleid][7])
-	 	{
-	 	    if(CallLocalFunction("OnVehicleHealthChange", "iff", vehicleid, FloatData[0], gVehicleFloat[vehicleid][7]))
-	 	    {
-				gVehicleFloat[vehicleid][7] = FloatData[0];
-	 	    }
-	 	    else
-	 	    {
-				SetVehicleHealth(vehicleid, gVehicleFloat[vehicleid][7]);
-	 	    }
+			GetVehiclePos(vehicleid, FloatData[0], FloatData[1], FloatData[2]);
+			GetVehicleZAngle(vehicleid, FloatData[3]);
+		 	if(	(FloatData[0] > gVehicleFloat[vehicleid][0] + 0.5 || FloatData[0] < gVehicleFloat[vehicleid][0] - 0.5) ||
+				(FloatData[1] > gVehicleFloat[vehicleid][1] + 0.5 || FloatData[1] < gVehicleFloat[vehicleid][1] - 0.5) ||
+				(FloatData[2] > gVehicleFloat[vehicleid][2] + 0.5 || FloatData[2] < gVehicleFloat[vehicleid][2] - 0.5) ||
+				(FloatData[3] > gVehicleFloat[vehicleid][3] + 0.5 || FloatData[3] < gVehicleFloat[vehicleid][3] - 0.5))
+			{
+				TeleportVehicle(vehicleid, gVehicleFloat[vehicleid][0], gVehicleFloat[vehicleid][1], gVehicleFloat[vehicleid][2], gVehicleFloat[vehicleid][3], GetVehicleInterior(vehicleid), GetVehicleVirtualWorld(vehicleid));
+	 	 	}
+	    }
+		if(HasOnVehiclePosChange != -1 && !IsVehicleSticky(vehicleid))
+		{
+			GetVehiclePos(vehicleid, FloatData[0], FloatData[1], FloatData[2]);
+			GetVehicleZAngle(vehicleid, FloatData[3]);
+			if(	FloatData[0] != gVehicleFloat[vehicleid][0] ||
+			    FloatData[1] != gVehicleFloat[vehicleid][1] ||
+			    FloatData[2] != gVehicleFloat[vehicleid][2] ||
+			    FloatData[3] != gVehicleFloat[vehicleid][3])
+		 	{
+		 	    if(CallLocalFunction("OnVehiclePosChange", "iffffffff", vehicleid, FloatData[0], FloatData[1], FloatData[2], FloatData[3], gVehicleFloat[vehicleid][0], gVehicleFloat[vehicleid][1], gVehicleFloat[vehicleid][2], gVehicleFloat[vehicleid][3]))
+		 	    {
+		 	        gVehicleFloat[vehicleid][0] = FloatData[0];
+				    gVehicleFloat[vehicleid][1] = FloatData[1];
+				    gVehicleFloat[vehicleid][2] = FloatData[2];
+				   	gVehicleFloat[vehicleid][3] = FloatData[3];
+		 	    }
+		 	    else
+		 	    {
+		 	        TeleportVehicle(vehicleid, gVehicleFloat[vehicleid][0], gVehicleFloat[vehicleid][1], gVehicleFloat[vehicleid][2], gVehicleFloat[vehicleid][3], GetVehicleInterior(vehicleid), GetVehicleVirtualWorld(vehicleid));
+		 	    }
+			}
 	 	}
-	}
 
-	if(HasOnVehicleUpdate != -1)
-	{
-		CallLocalFunction("OnVehicleUpdate", "i", vehicleid);
+		if(HasOnVehicleVelocityChange != -1 && !IsVehicleSticky(vehicleid))
+	 	{
+	 		GetVehicleVelocity(vehicleid, FloatData[0], FloatData[1], FloatData[2]);
+		 	if(	FloatData[0] != gVehicleFloat[vehicleid][4] ||
+			    FloatData[1] != gVehicleFloat[vehicleid][5] ||
+			    FloatData[2] != gVehicleFloat[vehicleid][6])
+	 		{
+		 	    if(CallLocalFunction("OnVehicleVelocityChange", "iffffff", vehicleid, FloatData[0], FloatData[1], FloatData[2], gVehicleFloat[vehicleid][4], gVehicleFloat[vehicleid][5], gVehicleFloat[vehicleid][6]))
+		 	    {
+			 	    gVehicleFloat[vehicleid][4] = FloatData[0];
+					gVehicleFloat[vehicleid][5] = FloatData[1];
+					gVehicleFloat[vehicleid][6] = FloatData[2];
+		 	    }
+		 	    else
+		 	    {
+		 	        SetVehicleVelocity(vehicleid, gVehicleFloat[vehicleid][4], gVehicleFloat[vehicleid][5], gVehicleFloat[vehicleid][6]);
+		 	    }
+			}
+		}
+
+		GetVehicleHealth(vehicleid, FloatData[0]);
+	 	if(HasOnVehicleHealthChange != -1)
+	 	{
+		 	if(FloatData[0] != gVehicleFloat[vehicleid][7])
+		 	{
+		 	    if(CallLocalFunction("OnVehicleHealthChange", "iff", vehicleid, FloatData[0], gVehicleFloat[vehicleid][7]))
+		 	    {
+					gVehicleFloat[vehicleid][7] = FloatData[0];
+		 	    }
+		 	    else
+		 	    {
+					SetVehicleHealth(vehicleid, gVehicleFloat[vehicleid][7]);
+		 	    }
+		 	}
+		}
+
+		if(HasOnVehicleUpdate != -1)
+		{
+			CallLocalFunction("OnVehicleUpdate", "i", vehicleid);
+		}
 	}
 	return 1;
 }
