@@ -666,7 +666,7 @@ stock static Vehicle_DeleteProperty(vehicleid, type)
 
 stock Vehicle_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, color1 = -1, color2 = -1, respawn_delay = -1, addsiren = 0, worldid = 0, interiorid = 0, bool:unoccupied_damage = false)
 {
-	if(modelid < 400 || modelid > 610) return false;
+	if(modelid < 400 || modelid > 611) return INVALID_VEHICLE_ID;
 
 	if(	(color1 == -1 || color2 == -1) &&
 		gVehicleInfo[(modelid - 400)][Color][0])
@@ -1246,16 +1246,16 @@ public OnVehicleDamageStatusUpdate(vehicleid, playerid)
 #endif
 #define OnVehicleDamageStatusUpdate V_OnVehicleDamageStatusUpdate
 
-stock static encode_lights(light1, light2, light3, light4)
+stock encode_lights(light1, light2, light3, light4)
 {
 	return light1 | (light2 << 1) | (light3 << 2) | (light4 << 3);
 }
-stock static encode_panels(flp, frp, rlp, rrp, windshield, front_bumper, rear_bumper)
+stock encode_panels(flp, frp, rlp, rrp, windshield, front_bumper, rear_bumper)
 {
 	return flp | (frp << 4) | (rlp << 8) | (rrp << 12) | (windshield << 16) | (front_bumper << 20) | (rear_bumper << 24);
 }
 
-stock static encode_doors(bonnet, boot, driver_door, passenger_door, behind_driver_door, behind_passenger_door)
+stock encode_doors(bonnet, boot, driver_door, passenger_door, behind_driver_door, behind_passenger_door)
 {
     #pragma unused behind_driver_door
     #pragma unused behind_passenger_door
@@ -1644,13 +1644,14 @@ stock Float:GetVehicleSpeed(vehicleid, bool:kmh = true, Float:velx = 0.0, Float:
 	return float(floatround((floatsqroot(((velx * velx) + (vely * vely)) + (velz * velz)) * (kmh ? (136.666667) : (85.4166672))), floatround_round));
 }
 
+/*
 #if defined STREAMER_TYPE_OBJECT
 
 	stock Veh_AttachDynamicObjectToVeh(objectid, vehicleid, Float:OffsetX, Float:OffsetY, Float:OffsetZ, Float:RotX, Float:RotY, Float:RotZ)
 	{
 		for(new i; i < MAX_VEHICLE_ATTACHED_OBJECTS; i++)
 		{
-	  		if(!IsValidDynamicObject(gVehicleAttachedObject[vehicleid][i]))
+	  		if(gVehicleAttachedObject[vehicleid][i] == INVALID_OBJECT_ID)
 			{
 			    if(AttachDynamicObjectToVehicle(objectid, vehicleid, OffsetX, OffsetY, OffsetZ, RotX, RotY, RotZ))
 				{
@@ -1658,6 +1659,7 @@ stock Float:GetVehicleSpeed(vehicleid, bool:kmh = true, Float:velx = 0.0, Float:
 			    	return true;
 			    }
 			}
+			else if(gVehicleAttachedObject[vehicleid][i] == objectid) return 1;
 		}
 		printf("WARNING: The object wasn't attached to the vehicle (id: %i), This may occur because the MAX_VEHICLE_ATTACHED_OBJECT limit was exceeded or the vehicle wasn't created. <vehicleplus.inc>", vehicleid);
 		return false;
@@ -1688,6 +1690,21 @@ stock Float:GetVehicleSpeed(vehicleid, bool:kmh = true, Float:velx = 0.0, Float:
 
 		return gVehicleAttachedObject[vehicleid][slot];
 
+	}
+
+	stock DestroyVehicleAttachedObject(vehicleid, objectid)
+	{
+		if(!IsValidDynamicObject(objectid)) return 0;
+		for(new i = 0; i < MAX_VEHICLE_ATTACHED_OBJECTS; i++)
+		{
+			if(IsValidDynamicObject(gVehicleAttachedObject[vehicleid][i]) && (gVehicleAttachedObject[vehicleid][i] == objectid))
+			{
+				DestroyDynamicObject(objectid);
+				gVehicleAttachedObject[vehicleid][i] = INVALID_OBJECT_ID;
+				return 1;
+			}
+		}
+		return 0;
 	}
 
 #else
@@ -1737,7 +1754,23 @@ stock Float:GetVehicleSpeed(vehicleid, bool:kmh = true, Float:velx = 0.0, Float:
 
 	}
 
+	stock DestroyVehicleAttachedObject(vehicleid, objectid)
+	{
+		if(!IsValidObject(objectid)) return 0;
+		for(new i = 0; i < MAX_VEHICLE_ATTACHED_OBJECTS; i++)
+		{
+			if(IsValidObject(gVehicleAttachedObject[vehicleid][i]) && (gVehicleAttachedObject[vehicleid][i] == objectid))
+			{
+				DestroyObject(objectid);
+				gVehicleAttachedObject[vehicleid][i] = INVALID_OBJECT_ID;
+				return 1;
+			}
+		}
+		return 0;
+	}
+
 #endif
+*/
 
 stock TeleportVehicle(vehicleid, Float:x, Float:y, Float:z, Float:rotation, worldid = -1, interiorid = -1)
 {
