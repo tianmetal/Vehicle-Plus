@@ -8,8 +8,9 @@
 	* Gammix
 
 	Contributors:
-	* Admigo - a_OPSVP include (offsets of vehicle bodyparts)
-	* Emmet_ - random car colors and top speed array
+	* Admigo 	- a_OPSVP include (offsets of vehicle bodyparts)
+	* Emmet_ 	- random car colors and top speed array
+	* Tianmetal - MPH speed support, GVar & Streamer plugin integration, and fixes
 
 	(c) Copyright 2015
   	* This file is provided as is (no warranties).
@@ -72,6 +73,8 @@ public OnVehicleBombExplode(vehicleid)
 public OnVehiclePosChange(vehicleid, Float:newx, Float:newy, Float:newz, Float:newrotation, Float:oldx, Float:oldy, Float:oldz, Float:oldrotation)
 public OnVehicleVelocityChange(vehicleid, Float:newx, Float:newy, Float:newz, Float:oldx, Float:oldy, Float:oldz)
 public OnVehicleHealthChange(vehicleid, Float:newhealth, Float:oldhealth)
+public OnTrailerAttach(trailerid,vehicleid)
+public OnTrailerDetach(trailerid,old_vehicleid)
 */
 
 #define VEHICLE_DAMAGE_PANELS       			0
@@ -98,28 +101,35 @@ public OnVehicleHealthChange(vehicleid, Float:newhealth, Float:oldhealth)
 	#define MAX_VEHICLE_ATTACHED_OBJECTS    	30
 #endif
 
-#define MAX_VEHICLE_MODELS              		212
-
 #if ! defined VEHICLE_UPDATE_INTERVAL
 	#define VEHICLE_UPDATE_INTERVAL				250
 #endif
 
-static HasOnPlayerShotVehicle;
-static HasOnPlayerEditVehicle;
-static HasOnPlayerReachSpeedCapLimit;
-static HasOnVehicleBombActivate;
-static HasOnVehicleBombDeactivate;
-static HasOnVehicleBombExplode;
-static HasOnVehiclePosChange;
-static HasOnVehicleVelocityChange;
-static HasOnVehicleHealthChange;
-static HasOnVehicleUpdate;
+forward OnPlayerShotVehicle(playerid, vehicleid, weaponid, Float:amount, bodypart);
+forward OnVehiclePosChange(vehicleid, Float:newx, Float:newy, Float:newz, Float:newrotation, Float:oldx, Float:oldy, Float:oldz, Float:oldrotation);
+forward OnVehicleVelocityChange(vehicleid, Float:newx, Float:newy, Float:newz, Float:oldx, Float:oldy, Float:oldz);
+forward OnVehicleHealthChange(vehicleid, Float:newhealth, Float:oldhealth);
+forward OnVehicleUpdate(vehicleid);
+
+static bool:HasOnPlayerShotVehicle;
+static bool:HasOnPlayerEditVehicle;
+static bool:HasOnPlayerReachSpeedCapLimit;
+static bool:HasOnVehicleBombActivate;
+static bool:HasOnVehicleBombDeactivate;
+static bool:HasOnVehicleBombExplode;
+static bool:HasOnVehiclePosChange;
+static bool:HasOnVehicleVelocityChange;
+static bool:HasOnVehicleHealthChange;
+static bool:HasOnVehicleUpdate;
+static bool:HasOnTrailerAttach;
+static bool:HasOnTrailerDetach;
 
 static gPlayerEdit[MAX_PLAYERS] = INVALID_VEHICLE_ID;
 static gVehicleAttachedObject[MAX_VEHICLES][MAX_VEHICLE_ATTACHED_OBJECTS];
 static Float:gVehicleFloat[MAX_VEHICLES][4 + 3 + 1];
 static gVehicleSpeedCap[MAX_VEHICLES];
 static gVehicleDriver[MAX_VEHICLES];
+static gVehicleTrailer[MAX_VEHICLES];
 static bool:gVehicleIsSticky[MAX_VEHICLES];
 
 #if defined _INC_y_timers
@@ -137,7 +147,7 @@ enum E_VEHICLE_INFO
 	Color[33]
 }
 
-static const gVehicleInfo[MAX_VEHICLE_MODELS][E_VEHICLE_INFO] =
+static const gVehicleInfo[][E_VEHICLE_INFO] =
 {
 	{"Landstalker",157,{-1.06,-2.07,-0.03},{16,4,1,123,1,113,1,11,1,75,1,62,1,4,1,36,1}},
 	{"Bravura",147,{1.25,-0.91,0.05},{16,41,41,47,47,52,52,66,66,74,74,87,87,91,91,113,113}},
@@ -370,16 +380,18 @@ static const gVehicleInfo[MAX_VEHICLE_MODELS][E_VEHICLE_INFO] =
 
 public OnGameModeInit()
 {
-	HasOnPlayerShotVehicle = funcidx("OnPlayerShotVehicle");
-	HasOnPlayerEditVehicle = funcidx("OnPlayerEditVehicle");
-	HasOnPlayerReachSpeedCapLimit = funcidx("OnPlayerReachSpeedCapLimit");
-	HasOnVehicleBombActivate = funcidx("OnVehicleBombActivate");
-	HasOnVehicleBombDeactivate = funcidx("OnVehicleBombDeactivate");
-	HasOnVehicleBombExplode = funcidx("OnVehicleBombExplode");
-	HasOnVehiclePosChange = funcidx("OnVehiclePosChange");
-	HasOnVehicleVelocityChange = funcidx("OnVehicleVelocityChange");
-	HasOnVehicleHealthChange = funcidx("OnVehicleHealthChange");
-	HasOnVehicleUpdate = funcidx("OnVehicleUpdate");
+	HasOnPlayerShotVehicle = (funcidx("OnPlayerShotVehicle") != -1);
+	HasOnPlayerEditVehicle = (funcidx("OnPlayerEditVehicle") != -1);
+	HasOnPlayerReachSpeedCapLimit = (funcidx("OnPlayerReachSpeedCapLimit") != -1);
+	HasOnVehicleBombActivate = (funcidx("OnVehicleBombActivate") != -1);
+	HasOnVehicleBombDeactivate = (funcidx("OnVehicleBombDeactivate") != -1);
+	HasOnVehicleBombExplode = (funcidx("OnVehicleBombExplode") != -1);
+	HasOnVehiclePosChange = (funcidx("OnVehiclePosChange") != -1);
+	HasOnVehicleVelocityChange = (funcidx("OnVehicleVelocityChange") != -1);
+	HasOnVehicleHealthChange = (funcidx("OnVehicleHealthChange") != -1);
+	HasOnVehicleUpdate = (funcidx("OnVehicleUpdate") != -1);
+	HasOnTrailerAttach = (funcidx("OnTrailerAttach") != -1);
+	HasOnTrailerDetach = (funcidx("OnTrailerDetach") != -1);
 
 	#if defined _INC_y_timers
 		VehicleTimer = repeat Vehicle_UpdateTimer();
@@ -666,7 +678,7 @@ stock static Vehicle_DeleteProperty(vehicleid, type)
 
 stock Vehicle_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, color1 = -1, color2 = -1, respawn_delay = -1, addsiren = 0, worldid = 0, interiorid = 0, bool:unoccupied_damage = false)
 {
-	if(modelid < 400 || modelid > 611) return INVALID_VEHICLE_ID;
+	if(modelid < 400 || modelid > 610) return false;
 
 	if(	(color1 == -1 || color2 == -1) &&
 		gVehicleInfo[(modelid - 400)][Color][0])
@@ -1311,9 +1323,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
                 case 38: fDamage = 50.0;
             }
 
-			//front wheels
 			GetVehicleModelInfo(fModelid, VEHICLE_MODEL_INFO_WHEELSFRONT, fOffSet[0], fOffSet[1], fOffSet[2]);
-   			//left
 			if(	fX >= fOffSet[0] - 2.4 &&
 				fX <= fOffSet[0] &&
 				fY >= fOffSet[1] - 0.4 &&
@@ -1321,7 +1331,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 				fZ >= fOffSet[2] - 0.4 &&
 				fZ <= fOffSet[2] + 0.4)
 			{
-				if(HasOnPlayerShotVehicle == -1 || CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_FRONT_LEFT_WHEEL))
+				if(!HasOnPlayerShotVehicle || CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_FRONT_LEFT_WHEEL))
 				{
 					if(IsUnoccupiedDamageToggled(hitid))
 					{
@@ -1349,7 +1359,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 				fZ >= fOffSet[2] - 0.4 &&
 				fZ <= fOffSet[2] + 0.4)
 			{
-				if(HasOnPlayerShotVehicle == -1 || CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_FRONT_RIGHT_WHEEL))
+				if(!HasOnPlayerShotVehicle || CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_FRONT_RIGHT_WHEEL))
 				{
 					if(IsUnoccupiedDamageToggled(hitid))
 					{
@@ -1380,7 +1390,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 				fZ >= fOffSet[2] - 0.4 &&
 				fZ <= fOffSet[2] + 0.4)
 			{
-				if(HasOnPlayerShotVehicle == -1 || CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_BACK_LEFT_WHEEL))
+				if(!HasOnPlayerShotVehicle || CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_BACK_LEFT_WHEEL))
 				{
 					if(IsUnoccupiedDamageToggled(hitid))
 					{
@@ -1408,7 +1418,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 				fZ >= fOffSet[2] - 0.4 &&
 				fZ <= fOffSet[2] + 0.4)
 			{
-				if(HasOnPlayerShotVehicle == -1 || CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_BACK_RIGHT_WHEEL))
+				if(!HasOnPlayerShotVehicle || CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_BACK_RIGHT_WHEEL))
 				{
 					if(IsUnoccupiedDamageToggled(hitid))
 					{
@@ -1438,7 +1448,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 				fZ >= gVehicleInfo[fModelid][PetrolCapOffset][2] - 0.15 &&
 				fZ <= gVehicleInfo[fModelid][PetrolCapOffset][2] + 0.15)
 			{
-				if(HasOnPlayerShotVehicle == -1 || CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_PETROLCAP))
+				if(!HasOnPlayerShotVehicle || CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_PETROLCAP))
 				{
 					if(IsPetrolCapDestroyToggled(hitid))
 	    			{
@@ -1467,7 +1477,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 				else return 0;
 			}
 
-			if(HasOnPlayerShotVehicle == -1 || CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_UNKNOWN))
+			if(!HasOnPlayerShotVehicle || CallLocalFunction("OnPlayerShotVehicle", "iiifi", playerid, hitid, weaponid, fDamage, VEHICLE_BODYPART_UNKNOWN))
 			{
 			    if(IsUnoccupiedDamageToggled(hitid))
 			    {
@@ -1501,8 +1511,6 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
     #define _ALS_OnPlayerWeaponShot
 #endif
 #define OnPlayerWeaponShot Vehicle_OnPlayerWeaponShot
-
-forward OnPlayerShotVehicle(playerid, vehicleid, weaponid, Float:amount, bodypart);
 
 stock IsVehicleOccupied(vehicleid)
 {
@@ -1548,6 +1556,8 @@ stock EditVehicle(playerid, vehicleid)
 	native IsValidVehicle(vehicleid);
 #endif
 
+#if ! defined STREAMER_TYPE_OBJECT
+
 public OnPlayerEditObject(playerid, playerobject, objectid, response, Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ)
 {
 	if(IsValidVehicle(gPlayerEdit[playerid]))
@@ -1557,7 +1567,7 @@ public OnPlayerEditObject(playerid, playerobject, objectid, response, Float:fX, 
 	        SetVehiclePos(gPlayerEdit[playerid], fX, fY, fZ);
 			SetVehicleZAngle(gPlayerEdit[playerid], fRotZ);
 
-			if(HasOnPlayerEditVehicle != -1) CallLocalFunction("OnPlayerEditVehicle", "iiiffff", playerid, gPlayerEdit[playerid], response, fX, fY, fZ, fRotZ);
+			if(HasOnPlayerEditVehicle) CallLocalFunction("OnPlayerEditVehicle", "iiiffff", playerid, gPlayerEdit[playerid], response, fX, fY, fZ, fRotZ);
 
 	        switch(response)
 	        {
@@ -1589,6 +1599,52 @@ public OnPlayerEditObject(playerid, playerobject, objectid, response, Float:fX, 
     #define _ALS_OnPlayerEditObject
 #endif
 #define OnPlayerEditObject Vehicle_OnPlayerEditObject
+
+#else
+
+public OnPlayerEditDynamicObject(playerid, playerobject, objectid, response, Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ)
+{
+	if(IsValidVehicle(gPlayerEdit[playerid]))
+	{
+	    if(Vehicle_GetPropertyInt(gPlayerEdit[playerid], v_editor) == objectid)
+	    {
+	        SetVehiclePos(gPlayerEdit[playerid], fX, fY, fZ);
+			SetVehicleZAngle(gPlayerEdit[playerid], fRotZ);
+
+			if(HasOnPlayerEditVehicle) CallLocalFunction("OnPlayerEditVehicle", "iiiffff", playerid, gPlayerEdit[playerid], response, fX, fY, fZ, fRotZ);
+
+	        switch(response)
+	        {
+	            case EDIT_RESPONSE_CANCEL, EDIT_RESPONSE_FINAL:
+	            {
+					DestroyDynamicObject(objectid);
+					Vehicle_SetPropertyInt(gPlayerEdit[playerid], v_editor, INVALID_OBJECT_ID);
+
+					SetVehicleVelocity(gPlayerEdit[playerid], 0.0, 0.0, 0.0);
+
+					gPlayerEdit[playerid] = INVALID_VEHICLE_ID;
+	            }
+	        }
+	    }
+	}
+
+	#if defined Veh_OnPlayerEditDynamicObject
+        return Veh_OnPlayerEditDynamicObject(playerid, playerobject, objectid, response, Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ);
+    #else
+        return 1;
+    #endif
+}
+#if defined Veh_OnPlayerEditDynamicObject
+    forward Veh_OnPlayerEditDynamicObject(playerid, playerobject, objectid, response, Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ);
+#endif
+#if defined _ALS_OnPlayerEditDynamicObject
+    #undef OnPlayerEditDynamicObject
+#else
+    #define _ALS_OnPlayerEditDynamicObject
+#endif
+#define OnPlayerEditDynamicObject Veh_OnPlayerEditDynamicObject
+
+#endif
 
 forward OnPlayerEditVehicle(playerid, vehicleid, response, Float:fX, Float:fY, Float:fZ, Float:fRotZ);
 
@@ -1774,40 +1830,22 @@ stock Float:GetVehicleSpeed(vehicleid, bool:kmh = true, Float:velx = 0.0, Float:
 
 stock TeleportVehicle(vehicleid, Float:x, Float:y, Float:z, Float:rotation, worldid = -1, interiorid = -1)
 {
+	#if defined _Y_ITERATE_LOCAL_VERSION
+	foreach(new i : Player)
+	{
+	#else
 	for(new i; i <= GetPlayerPoolSize(); i++)
 	{
-	    if(IsPlayerConnected(i))
-	    {
-	        if(GetPlayerVehicleID(i) == vehicleid)
-	        {
-	            if(worldid != -1)
-				{
-					SetPlayerVirtualWorld(i, worldid);
-				}
-				else
-				{
-					SetPlayerVirtualWorld(i, GetVehicleVirtualWorld(vehicleid));
-				}
-	            if(interiorid != -1)
-				{
-					SetPlayerInterior(i, interiorid);
-				}
-				else
-				{
-					SetPlayerInterior(i, GetVehicleInterior(vehicleid));
-				}
-	        }
-	    }
+	    if(!IsPlayerConnected(i)) continue;
+	#endif
+        if(GetPlayerVehicleID(i) == vehicleid)
+        {
+            if(worldid != -1) SetPlayerVirtualWorld(i, worldid);
+            if(interiorid != -1) SetPlayerInterior(i, interiorid);
+        }
 	}
-
- 	if(worldid != -1)
-	{
-		SetVehicleVirtualWorld(vehicleid, worldid);
-	}
-	if(interiorid != -1)
-	{
-		SetVehicleInterior(vehicleid, interiorid);
-	}
+ 	if(worldid != -1) SetVehicleVirtualWorld(vehicleid, worldid);
+	if(interiorid != -1) SetVehicleInterior(vehicleid, interiorid);
 
 	SetVehiclePos(vehicleid, x, y, z);
 	SetVehicleZAngle(vehicleid, rotation);
@@ -1850,7 +1888,7 @@ public OnPlayerUpdate(playerid)
 		{
 			if(speed > speedcap)
 			{
-			    if(HasOnPlayerReachSpeedCapLimit == -1 || CallLocalFunction("OnPlayerReachSpeedCapLimit", "iif", playerid, vehicleid, speed))
+			    if(!HasOnPlayerReachSpeedCapLimit || CallLocalFunction("OnPlayerReachSpeedCapLimit", "iif", playerid, vehicleid, speed))
 			    {
 					vel[0] = (vel[0] / speed) * speedcap;
 					vel[1] = (vel[1] / speed) * speedcap;
@@ -2014,7 +2052,7 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
 		{
 		    if(! IsVehicleBombActivated(vehicleid))
 		    {
-		        if(HasOnVehicleBombActivate == -1 || CallLocalFunction("OnVehicleBombActivate", "i", vehicleid))
+		        if(!HasOnVehicleBombActivate || CallLocalFunction("OnVehicleBombActivate", "i", vehicleid))
 		        {
 		            new interval = (GetVehicleBomb(vehicleid) - 1750);
 		            if(interval < 1750)
@@ -2095,13 +2133,13 @@ public Vehicle_OnVehicleBombExplode(playerid, vehicleid)
 {
 	if(GetPlayerState(playerid) != PLAYER_STATE_DRIVER)
 	{
-	    if(HasOnVehicleBombDeactivate == -1 || !CallLocalFunction("OnVehicleBombDeactivate", "i", vehicleid))
+	    if(!HasOnVehicleBombDeactivate || !CallLocalFunction("OnVehicleBombDeactivate", "i", vehicleid))
 		{
     		return SetVehicleParams(vehicleid, VEHICLE_PARAMS_ALARM, VEHICLE_PARAMS_OFF);
 		}
 	}
 	
-	if(HasOnVehicleBombExplode != -1) CallLocalFunction("OnVehicleBombExplode", "i", vehicleid);
+	if(HasOnVehicleBombExplode) CallLocalFunction("OnVehicleBombExplode", "i", vehicleid);
 
 	SetVehicleParams(vehicleid, VEHICLE_PARAMS_ALARM, VEHICLE_PARAMS_OFF);
 
@@ -2216,7 +2254,25 @@ public Vehicle_UpdateTimer()
 				TeleportVehicle(vehicleid, gVehicleFloat[vehicleid][0], gVehicleFloat[vehicleid][1], gVehicleFloat[vehicleid][2], gVehicleFloat[vehicleid][3], GetVehicleInterior(vehicleid), GetVehicleVirtualWorld(vehicleid));
 	 	 	}
 	    }
-		if(HasOnVehiclePosChange != -1 && !IsVehicleSticky(vehicleid))
+
+	    if(HasOnTrailerAttach || HasOnTrailerDetach)
+	    {
+	    	new trailer = GetVehicleTrailer(vehicleid);
+	    	if(gVehicleTrailer[vehicleid] != trailer)
+	    	{
+	    		if(trailer != 0 && HasOnTrailerAttach)
+	    		{
+	    			CallLocalFunction("OnTrailerAttach","dd",trailer,vehicleid);
+	    		}
+	    		else if(trailer == 0 && HasOnTrailerDetach)
+	    		{
+	    			CallLocalFunction("OnTrailerDetach","dd",trailer,vehicleid);
+	    		}
+	    		gVehicleTrailer[vehicleid] = trailer;
+	    	}
+	    }
+
+		if(HasOnVehiclePosChange && !IsVehicleSticky(vehicleid))
 		{
 			GetVehiclePos(vehicleid, FloatData[0], FloatData[1], FloatData[2]);
 			GetVehicleZAngle(vehicleid, FloatData[3]);
@@ -2239,7 +2295,7 @@ public Vehicle_UpdateTimer()
 			}
 	 	}
 
-		if(HasOnVehicleVelocityChange != -1 && !IsVehicleSticky(vehicleid))
+		if(HasOnVehicleVelocityChange && !IsVehicleSticky(vehicleid))
 	 	{
 	 		GetVehicleVelocity(vehicleid, FloatData[0], FloatData[1], FloatData[2]);
 		 	if(	FloatData[0] != gVehicleFloat[vehicleid][4] ||
@@ -2260,7 +2316,7 @@ public Vehicle_UpdateTimer()
 		}
 
 		GetVehicleHealth(vehicleid, FloatData[0]);
-	 	if(HasOnVehicleHealthChange != -1)
+	 	if(HasOnVehicleHealthChange)
 	 	{
 		 	if(FloatData[0] != gVehicleFloat[vehicleid][7])
 		 	{
@@ -2275,19 +2331,10 @@ public Vehicle_UpdateTimer()
 		 	}
 		}
 
-		if(HasOnVehicleUpdate != -1)
-		{
-			CallLocalFunction("OnVehicleUpdate", "i", vehicleid);
-		}
+		if(HasOnVehicleUpdate) CallLocalFunction("OnVehicleUpdate", "i", vehicleid);
 	}
 	return 1;
 }
-
-forward OnVehiclePosChange(vehicleid, Float:newx, Float:newy, Float:newz, Float:newrotation, Float:oldx, Float:oldy, Float:oldz, Float:oldrotation);
-forward OnVehicleVelocityChange(vehicleid, Float:newx, Float:newy, Float:newz, Float:oldx, Float:oldy, Float:oldz);
-forward OnVehicleHealthChange(vehicleid, Float:newhealth, Float:oldhealth);
-forward OnVehicleUpdate(vehicleid);
-
 stock CountAllVehicles()
 {
 	new count;
