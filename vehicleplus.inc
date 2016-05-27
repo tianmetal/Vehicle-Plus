@@ -75,6 +75,7 @@ public OnVehicleVelocityChange(vehicleid, Float:newx, Float:newy, Float:newz, Fl
 public OnVehicleHealthChange(vehicleid, Float:newhealth, Float:oldhealth)
 public OnTrailerAttach(trailerid,vehicleid)
 public OnTrailerDetach(trailerid,old_vehicleid)
+public OnPlayerStealVehicle(playerid,targetid,vehicleid)
 */
 
 #define VEHICLE_DAMAGE_PANELS       			0
@@ -110,6 +111,9 @@ forward OnVehiclePosChange(vehicleid, Float:newx, Float:newy, Float:newz, Float:
 forward OnVehicleVelocityChange(vehicleid, Float:newx, Float:newy, Float:newz, Float:oldx, Float:oldy, Float:oldz);
 forward OnVehicleHealthChange(vehicleid, Float:newhealth, Float:oldhealth);
 forward OnVehicleUpdate(vehicleid);
+forward OnTrailerAttach(trailerid,vehicleid);
+forward OnTrailerDetach(trailerid,old_vehicleid);
+forward OnPlayerStealVehicle(playerid,targetid,vehicleid);
 
 static bool:HasOnPlayerShotVehicle;
 static bool:HasOnPlayerEditVehicle;
@@ -123,6 +127,7 @@ static bool:HasOnVehicleHealthChange;
 static bool:HasOnVehicleUpdate;
 static bool:HasOnTrailerAttach;
 static bool:HasOnTrailerDetach;
+static bool:HasOnPlayerStealVehicle;
 
 static gPlayerEdit[MAX_PLAYERS] = INVALID_VEHICLE_ID;
 static gVehicleAttachedObject[MAX_VEHICLES][MAX_VEHICLE_ATTACHED_OBJECTS];
@@ -380,18 +385,19 @@ static const gVehicleInfo[][E_VEHICLE_INFO] =
 
 public OnGameModeInit()
 {
-	HasOnPlayerShotVehicle = (funcidx("OnPlayerShotVehicle") != -1);
-	HasOnPlayerEditVehicle = (funcidx("OnPlayerEditVehicle") != -1);
-	HasOnPlayerReachSpeedCapLimit = (funcidx("OnPlayerReachSpeedCapLimit") != -1);
-	HasOnVehicleBombActivate = (funcidx("OnVehicleBombActivate") != -1);
-	HasOnVehicleBombDeactivate = (funcidx("OnVehicleBombDeactivate") != -1);
-	HasOnVehicleBombExplode = (funcidx("OnVehicleBombExplode") != -1);
-	HasOnVehiclePosChange = (funcidx("OnVehiclePosChange") != -1);
-	HasOnVehicleVelocityChange = (funcidx("OnVehicleVelocityChange") != -1);
-	HasOnVehicleHealthChange = (funcidx("OnVehicleHealthChange") != -1);
-	HasOnVehicleUpdate = (funcidx("OnVehicleUpdate") != -1);
-	HasOnTrailerAttach = (funcidx("OnTrailerAttach") != -1);
-	HasOnTrailerDetach = (funcidx("OnTrailerDetach") != -1);
+	HasOnPlayerShotVehicle = ((funcidx("OnPlayerShotVehicle") != -1) ? true : false);
+	HasOnPlayerEditVehicle = ((funcidx("OnPlayerEditVehicle") != -1) ? true : false);
+	HasOnPlayerReachSpeedCapLimit = ((funcidx("OnPlayerReachSpeedCapLimit") != -1) ? true : false);
+	HasOnVehicleBombActivate = ((funcidx("OnVehicleBombActivate") != -1) ? true : false);
+	HasOnVehicleBombDeactivate = ((funcidx("OnVehicleBombDeactivate") != -1) ? true : false);
+	HasOnVehicleBombExplode = ((funcidx("OnVehicleBombExplode") != -1) ? true : false);
+	HasOnVehiclePosChange = ((funcidx("OnVehiclePosChange") != -1) ? true : false);
+	HasOnVehicleVelocityChange = ((funcidx("OnVehicleVelocityChange") != -1) ? true : false);
+	HasOnVehicleHealthChange = ((funcidx("OnVehicleHealthChange") != -1) ? true : false);
+	HasOnVehicleUpdate = ((funcidx("OnVehicleUpdate") != -1) ? true : false);
+	HasOnTrailerAttach = ((funcidx("OnTrailerAttach") != -1) ? true : false);
+	HasOnTrailerDetach = ((funcidx("OnTrailerDetach") != -1) ? true : false);
+	HasOnPlayerStealVehicle = ((funcidx("OnPlayerStealVehicle") != -1) ? true : false);
 
 	#if defined _INC_y_timers
 		VehicleTimer = repeat Vehicle_UpdateTimer();
@@ -678,7 +684,7 @@ stock static Vehicle_DeleteProperty(vehicleid, type)
 
 stock Vehicle_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, color1 = -1, color2 = -1, respawn_delay = -1, addsiren = 0, worldid = 0, interiorid = 0, bool:unoccupied_damage = false)
 {
-	if(modelid < 400 || modelid > 610) return false;
+	if(modelid < 400 || modelid > 611) return false;
 
 	if(	(color1 == -1 || color2 == -1) &&
 		gVehicleInfo[(modelid - 400)][Color][0])
@@ -1076,6 +1082,11 @@ public OnVehicleSpawn(vehicleid)
 		gVehicleFloat[vehicleid][2] = pos[2];
 		gVehicleFloat[vehicleid][3] = angle;
 	}
+
+	gVehicleFloat[vehicleid][4] = 0.0;
+	gVehicleFloat[vehicleid][5] = 0.0;
+	gVehicleFloat[vehicleid][6] = 0.0;
+	gVehicleFloat[vehicleid][7] = 1000.0;
 
     #if defined Vehicle_OnVehicleSpawn
         return Vehicle_OnVehicleSpawn(vehicleid);
@@ -1529,6 +1540,21 @@ stock GetVehicleDriverID(vehicleid)
 	return gVehicleDriver[vehicleid];
 }
 
+stock Veh_GetDriver(vehicleid)
+{
+	#if defined _Y_ITERATE_LOCAL_VERSION
+	foreach(new i : Player)
+	{
+	#else
+	for(new i; i <= GetPlayerPoolSize(); i++)
+	{
+	    if(!IsPlayerConnected(i)) continue;
+	#endif
+	    if(IsPlayerInVehicle(i,vehicleid) && GetPlayerState(i) == PLAYER_STATE_DRIVER) return i;
+	}
+	return INVALID_PLAYER_ID;
+}
+
 stock EditVehicle(playerid, vehicleid)
 {
 	#if defined STREAMER_TYPE_OBJECT
@@ -1602,16 +1628,16 @@ public OnPlayerEditObject(playerid, playerobject, objectid, response, Float:fX, 
 
 #else
 
-public OnPlayerEditDynamicObject(playerid, playerobject, objectid, response, Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ)
+public OnPlayerEditDynamicObject(playerid, objectid, response, Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz)
 {
 	if(IsValidVehicle(gPlayerEdit[playerid]))
 	{
 	    if(Vehicle_GetPropertyInt(gPlayerEdit[playerid], v_editor) == objectid)
 	    {
-	        SetVehiclePos(gPlayerEdit[playerid], fX, fY, fZ);
-			SetVehicleZAngle(gPlayerEdit[playerid], fRotZ);
+	        SetVehiclePos(gPlayerEdit[playerid], x, y, z);
+			SetVehicleZAngle(gPlayerEdit[playerid], rz);
 
-			if(HasOnPlayerEditVehicle) CallLocalFunction("OnPlayerEditVehicle", "iiiffff", playerid, gPlayerEdit[playerid], response, fX, fY, fZ, fRotZ);
+			if(HasOnPlayerEditVehicle) CallLocalFunction("OnPlayerEditVehicle", "iiiffff", playerid, gPlayerEdit[playerid], response, x, y, z, rz);
 
 	        switch(response)
 	        {
@@ -1629,13 +1655,13 @@ public OnPlayerEditDynamicObject(playerid, playerobject, objectid, response, Flo
 	}
 
 	#if defined Veh_OnPlayerEditDynamicObject
-        return Veh_OnPlayerEditDynamicObject(playerid, playerobject, objectid, response, Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ);
+        return Veh_OnPlayerEditDynamicObject(playerid, objectid, response, Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz);
     #else
         return 1;
     #endif
 }
 #if defined Veh_OnPlayerEditDynamicObject
-    forward Veh_OnPlayerEditDynamicObject(playerid, playerobject, objectid, response, Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ);
+    forward Veh_OnPlayerEditDynamicObject(playerid, objectid, response, Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz);
 #endif
 #if defined _ALS_OnPlayerEditDynamicObject
     #undef OnPlayerEditDynamicObject
@@ -2080,13 +2106,18 @@ public OnPlayerStateChange(playerid, newstate, oldstate)
     {
         if(oldstate == PLAYER_STATE_DRIVER)
         {
-            if(GetPVarType(playerid,"p_driving_vid") > 0)
+        	if(GetPVarType(playerid,"p_driving_vid") > 0)
             {
                 new vehicleid = GetPVarInt(playerid,"p_driving_vid");
                 DeletePVar(playerid,"p_driving_vid");
                 if(gVehicleDriver[vehicleid] == playerid)
                 {
-                    gVehicleDriver[vehicleid] = INVALID_PLAYER_ID;
+                	gVehicleDriver[vehicleid] = INVALID_PLAYER_ID;
+                    if(HasOnPlayerStealVehicle)
+                    {
+                    	new stealer = Veh_GetDriver(vehicleid);
+                    	if(stealer != INVALID_VEHICLE_ID) CallLocalFunction("OnPlayerStealVehicle","ddd",stealer,playerid,vehicleid);
+                    }
                 }
             }
         }
