@@ -131,7 +131,8 @@ static bool:HasOnPlayerStealVehicle;
 
 static gPlayerEdit[MAX_PLAYERS] = INVALID_VEHICLE_ID;
 static gVehicleAttachedObject[MAX_VEHICLES][MAX_VEHICLE_ATTACHED_OBJECTS];
-static Float:gVehicleFloat[MAX_VEHICLES][4 + 3 + 1];
+static Float:gVehicleFloat[MAX_VEHICLES][10];
+static bool:gVehicleDamage[MAX_VEHICLES][4];
 static gVehicleSpeedCap[MAX_VEHICLES];
 static gVehicleDriver[MAX_VEHICLES];
 static gVehicleTrailer[MAX_VEHICLES];
@@ -372,16 +373,15 @@ static const gVehicleInfo[][E_VEHICLE_INFO] =
 #define v_color<%1>     	(%1 + 1)
 #define v_paintjob      	3
 #define v_horn      		4
-#define v_damage<%1>    	(%1 + 5)
-#define v_editor      		9
-#define v_spawn<%1>     	(%1 + 10)
-#define v_spawn_interiorid  14
-#define v_spawn_worldid  	15
-#define v_spawn_uno_damage  16
-#define v_petrolcap			17
-#define v_bomb			    18
-#define v_bomb_timer        19
-#define v_update_timer      20
+#define v_editor      		5
+#define v_spawn<%1>     	(%1 + 6)
+#define v_spawn_interiorid  10
+#define v_spawn_worldid  	11
+#define v_spawn_uno_damage  12
+#define v_petrolcap			13
+#define v_bomb			    14
+#define v_bomb_timer        15
+#define v_update_timer      16
 
 public OnGameModeInit()
 {
@@ -455,10 +455,6 @@ stock static Vehicle_SetPropertyInt(vehicleid, type, set)
 			case v_color<1>: 		SetGVarInt("v_color_2",set,vehicleid);
 			case v_paintjob: 		SetGVarInt("v_paintjob",set,vehicleid);
 			case v_horn: 			SetGVarInt("v_horn",set,vehicleid);
-			case v_damage<0>:		SetGVarInt("v_damage_1",set,vehicleid);
-			case v_damage<1>: 		SetGVarInt("v_damage_2",set,vehicleid);
-			case v_damage<2>: 		SetGVarInt("v_damage_3",set,vehicleid);
-			case v_damage<3>: 		SetGVarInt("v_damage_4",set,vehicleid);
 			case v_editor: 			SetGVarInt("v_editor",set,vehicleid);
 			case v_spawn_interiorid:SetGVarInt("v_spawn_interiorid",set,vehicleid);
 			case v_spawn_worldid: 	SetGVarInt("v_spawn_worldid",set,vehicleid);
@@ -478,10 +474,6 @@ stock static Vehicle_SetPropertyInt(vehicleid, type, set)
 			case v_color<1>: 		format(string, sizeof(string), "%i_v_color_2", vehicleid);
 			case v_paintjob: 		format(string, sizeof(string), "%i_v_paintjob", vehicleid);
 			case v_horn: 			format(string, sizeof(string), "%i_v_horn", vehicleid);
-			case v_damage<0>:		format(string, sizeof(string), "%i_v_damage_1", vehicleid);
-			case v_damage<1>: 		format(string, sizeof(string), "%i_v_damage_2", vehicleid);
-			case v_damage<2>: 		format(string, sizeof(string), "%i_v_damage_3", vehicleid);
-			case v_damage<3>: 		format(string, sizeof(string), "%i_v_damage_4", vehicleid);
 			case v_editor: 			format(string, sizeof(string), "%i_v_editor", vehicleid);
 			case v_spawn_interiorid:format(string, sizeof(string), "%i_v_spawn_interiorid", vehicleid);
 			case v_spawn_worldid: 	format(string, sizeof(string), "%i_v_spawn_worldid", vehicleid);
@@ -505,10 +497,6 @@ stock static Vehicle_GetPropertyInt(vehicleid, type)
 			case v_color<1>: 		return GetGVarInt("v_color_2", vehicleid);
 			case v_paintjob: 		return GetGVarInt("v_paintjob", vehicleid);
 			case v_horn: 			return GetGVarInt("v_horn", vehicleid);
-			case v_damage<0>:		return GetGVarInt("v_damage_1", vehicleid);
-			case v_damage<1>: 		return GetGVarInt("v_damage_2", vehicleid);
-			case v_damage<2>: 		return GetGVarInt("v_damage_3", vehicleid);
-			case v_damage<3>: 		return GetGVarInt("v_damage_4", vehicleid);
 			case v_editor: 			return GetGVarInt("v_editor", vehicleid);
 			case v_spawn_interiorid:return GetGVarInt("v_spawn_interiorid", vehicleid);
 			case v_spawn_worldid: 	return GetGVarInt("v_spawn_worldid", vehicleid);
@@ -528,10 +516,6 @@ stock static Vehicle_GetPropertyInt(vehicleid, type)
 			case v_color<1>: 		format(string, sizeof(string), "%i_v_color_2", vehicleid);
 			case v_paintjob: 		format(string, sizeof(string), "%i_v_paintjob", vehicleid);
 			case v_horn: 			format(string, sizeof(string), "%i_v_horn", vehicleid);
-			case v_damage<0>:		format(string, sizeof(string), "%i_v_damage_1", vehicleid);
-			case v_damage<1>: 		format(string, sizeof(string), "%i_v_damage_2", vehicleid);
-			case v_damage<2>: 		format(string, sizeof(string), "%i_v_damage_3", vehicleid);
-			case v_damage<3>: 		format(string, sizeof(string), "%i_v_damage_4", vehicleid);
 			case v_editor: 			format(string, sizeof(string), "%i_v_editor", vehicleid);
 			case v_spawn_interiorid:format(string, sizeof(string), "%i_v_spawn_interiorid", vehicleid);
 			case v_spawn_worldid: 	format(string, sizeof(string), "%i_v_spawn_worldid", vehicleid);
@@ -618,10 +602,6 @@ stock static Vehicle_DeleteProperty(vehicleid, type)
 			case v_color<1>: 			DeleteGVar("v_color_2", vehicleid);
 			case v_paintjob: 			DeleteGVar("v_paintjob",vehicleid);
 			case v_horn: 				DeleteGVar("v_horn", vehicleid);
-			case v_damage<0>:			DeleteGVar("v_damage_1",vehicleid);
-			case v_damage<1>: 			DeleteGVar("v_damage_2",vehicleid);
-			case v_damage<2>: 			DeleteGVar("v_damage_3",vehicleid);
-			case v_damage<3>: 			DeleteGVar("v_damage_4",vehicleid);
 			case v_editor: 				DeleteGVar("v_editor", vehicleid);
 			case v_spawn<0>:			DeleteGVar("v_spawn_x", vehicleid);
 			case v_spawn<1>:			DeleteGVar("v_spawn_y", vehicleid);
@@ -645,10 +625,6 @@ stock static Vehicle_DeleteProperty(vehicleid, type)
 			case v_color<1>: 	format(string, sizeof(string), "%i_v_color_2", vehicleid);
 			case v_paintjob: 	format(string, sizeof(string), "%i_v_paintjob", vehicleid);
 			case v_horn: 		format(string, sizeof(string), "%i_v_horn", vehicleid);
-			case v_damage<0>:	format(string, sizeof(string), "%i_v_damage_1", vehicleid);
-			case v_damage<1>: 	format(string, sizeof(string), "%i_v_damage_2", vehicleid);
-			case v_damage<2>: 	format(string, sizeof(string), "%i_v_damage_3", vehicleid);
-			case v_damage<3>: 	format(string, sizeof(string), "%i_v_damage_4", vehicleid);
 			case v_editor: 		format(string, sizeof(string), "%i_v_editor", vehicleid);
 			case v_spawn<0>:
 			{
@@ -722,11 +698,6 @@ stock Vehicle_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, 
 
     Vehicle_SetPropertyInt(vehicleid, v_horn, 0);
 
-	for(new i; i < 4; i++)
-	{
-    	Vehicle_SetPropertyInt(vehicleid, v_damage<i>, 1);
-	}
-
 	Vehicle_SetPropertyInt(vehicleid, v_editor, INVALID_OBJECT_ID);
 
 	for(new i; i < MAX_VEHICLE_ATTACHED_OBJECTS; i++)
@@ -755,6 +726,11 @@ stock Vehicle_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, 
 	gVehicleSpeedCap[vehicleid] = 0;
 	gVehicleIsSticky[vehicleid] = false;
 
+	gVehicleDamage[vehicleid][0] = true;
+	gVehicleDamage[vehicleid][1] = true;
+	gVehicleDamage[vehicleid][2] = true;
+	gVehicleDamage[vehicleid][3] = true;
+
 	gVehicleFloat[vehicleid][0] = x;
 	gVehicleFloat[vehicleid][1] = y;
 	gVehicleFloat[vehicleid][2] = z;
@@ -765,6 +741,8 @@ stock Vehicle_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, 
 	gVehicleFloat[vehicleid][6] = 0.0;
 
 	gVehicleFloat[vehicleid][7] = 1000.0;
+	gVehicleFloat[vehicleid][8] = -1.0;
+	gVehicleFloat[vehicleid][9] = 1000.0;
 
 	return vehicleid;
 }
@@ -852,6 +830,11 @@ stock Vehicle_DestroyVehicle(vehicleid)
         gVehicleSpeedCap[vehicleid] = 0;
         gVehicleIsSticky[vehicleid] = false;
 
+        gVehicleDamage[vehicleid][0] = true;
+		gVehicleDamage[vehicleid][1] = true;
+		gVehicleDamage[vehicleid][2] = true;
+		gVehicleDamage[vehicleid][3] = true;
+
 		Vehicle_DeleteProperty(vehicleid, v_interior);
 
 		Vehicle_DeleteProperty(vehicleid, v_color<0>);
@@ -860,11 +843,6 @@ stock Vehicle_DestroyVehicle(vehicleid)
 		Vehicle_DeleteProperty(vehicleid, v_paintjob);
 
 		Vehicle_DeleteProperty(vehicleid, v_horn);
-
-		Vehicle_DeleteProperty(vehicleid, v_damage<0>);
-		Vehicle_DeleteProperty(vehicleid, v_damage<1>);
-		Vehicle_DeleteProperty(vehicleid, v_damage<2>);
-		Vehicle_DeleteProperty(vehicleid, v_damage<3>);
 
 		#if defined STREAMER_TYPE_OBJECT
 			DestroyDynamicObject(Vehicle_GetPropertyInt(vehicleid, v_editor));
@@ -1086,7 +1064,10 @@ public OnVehicleSpawn(vehicleid)
 	gVehicleFloat[vehicleid][4] = 0.0;
 	gVehicleFloat[vehicleid][5] = 0.0;
 	gVehicleFloat[vehicleid][6] = 0.0;
-	gVehicleFloat[vehicleid][7] = 1000.0;
+	gVehicleFloat[vehicleid][7] = gVehicleFloat[vehicleid][9];
+	gVehicleFloat[vehicleid][8] = -1;
+
+	SetVehicleHealth(vehicleid,gVehicleFloat[vehicleid][7]);
 
     #if defined Vehicle_OnVehicleSpawn
         return Vehicle_OnVehicleSpawn(vehicleid);
@@ -1189,29 +1170,14 @@ stock ToggleVehicleDamageUpdate(vehicleid, type, bool:toggle)
 	        SetVehicleParams(vehicleid, VEHICLE_PARAMS_ENGINE, VEHICLE_PARAMS_OFF);
 	    }
 	}
-    return Vehicle_SetPropertyInt(vehicleid, v_damage<type>, _:toggle);
+	gVehicleDamage[vehicleid][type] = toggle;
+    return 1;
 }
 
 stock IsVehicleDamageToggled(vehicleid, type)
 {
-	return Vehicle_GetPropertyInt(vehicleid, v_damage<type>);
+	return gVehicleDamage[vehicleid][type];
 }
-
-stock Vehicle_SetVehicleHealth(vehicleid, Float:health)
-{
-    if(SetVehicleHealth(vehicleid, health))
-	{
-		gVehicleFloat[vehicleid][7] = health;
-		return true;
-	}
-	return false;
-}
-#if defined _ALS_SetVehicleHealth
-    #undef SetVehicleHealth
-#else
-    #define _ALS_SetVehicleHealth
-#endif
-#define SetVehicleHealth Vehicle_SetVehicleHealth
 
 stock UpdateVehicleDamageStatusEx(vehicleid, type, update)
 {
@@ -1475,7 +1441,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 					else
 					{
 						fHealth -= fDamage;
-						SetVehicleHealth(hitid, fHealth);
+						Vehicle_SetVehicleHealth(hitid, fHealth);
 
 						switch(fHealth)
 						{
@@ -1493,7 +1459,7 @@ public OnPlayerWeaponShot(playerid, weaponid, hittype, hitid, Float:fX, Float:fY
 			    if(IsUnoccupiedDamageToggled(hitid))
 			    {
 					fHealth -= fDamage;
-					SetVehicleHealth(hitid, fHealth);
+					Vehicle_SetVehicleHealth(hitid, fHealth);
 
 					switch(floatround(fHealth))
 					{
@@ -2347,48 +2313,96 @@ public Vehicle_UpdateTimer()
 		}
 
 		GetVehicleHealth(vehicleid, FloatData[0]);
-	 	if(HasOnVehicleHealthChange)
-	 	{
-		 	if(FloatData[0] != gVehicleFloat[vehicleid][7])
-		 	{
-		 	    if(CallLocalFunction("OnVehicleHealthChange", "iff", vehicleid, FloatData[0], gVehicleFloat[vehicleid][7]))
-		 	    {
-					gVehicleFloat[vehicleid][7] = FloatData[0];
-		 	    }
-		 	    else
-		 	    {
-					SetVehicleHealth(vehicleid, gVehicleFloat[vehicleid][7]);
-		 	    }
-		 	}
+ 		if(gVehicleFloat[vehicleid][8] != -1.0)
+		{
+			SetVehicleHealth(vehicleid,gVehicleFloat[vehicleid][8]);
+			gVehicleFloat[vehicleid][7] = gVehicleFloat[vehicleid][8];
+			gVehicleFloat[vehicleid][8] = -1.0;
 		}
+	 	else if(HasOnVehicleHealthChange && (FloatData[0] != gVehicleFloat[vehicleid][7]))
+	 	{
+	 	    if(CallLocalFunction("OnVehicleHealthChange", "iff", vehicleid, FloatData[0], gVehicleFloat[vehicleid][7]))
+	 	    {
+				gVehicleFloat[vehicleid][7] = FloatData[0];
+	 	    }
+	 	    else
+	 	    {
+				SetVehicleHealth(vehicleid, gVehicleFloat[vehicleid][7]);
+	 	    }
+	 	}
 
 		if(HasOnVehicleUpdate) CallLocalFunction("OnVehicleUpdate", "i", vehicleid);
 	}
 	return 1;
 }
+
+stock Vehicle_SetVehicleHealth(vehicleid, Float:health)
+{
+    if(SetVehicleHealth(vehicleid, health))
+	{
+		gVehicleFloat[vehicleid][7] = health;
+		gVehicleFloat[vehicleid][8] = health;
+		return 1;
+	}
+	return 0;
+}
+#if defined _ALS_SetVehicleHealth
+    #undef SetVehicleHealth
+#else
+    #define _ALS_SetVehicleHealth
+#endif
+#define SetVehicleHealth Vehicle_SetVehicleHealth
+
+stock Vehicle_RepairVehicle(vehicleid)
+{
+    if(RepairVehicle(vehicleid))
+	{
+		gVehicleFloat[vehicleid][7] = gVehicleFloat[vehicleid][9];
+		gVehicleFloat[vehicleid][8] = gVehicleFloat[vehicleid][9];
+		return 1;
+	}
+	return 0;
+}
+#if defined _ALS_RepairVehicle
+    #undef RepairVehicle
+#else
+    #define _ALS_RepairVehicle
+#endif
+#define RepairVehicle Vehicle_RepairVehicle
+
+stock SetVehicleMaxHealth(vehicleid, Float:health)
+{
+	gVehicleFloat[vehicleid][9] = health;
+	return 1;
+}
+stock Float:GetVehicleMaxHealth(vehicleid)
+{
+	return gVehicleFloat[vehicleid][9];
+}
+
 stock CountAllVehicles()
 {
-	new count;
+	#if defined _Y_ITERATE_LOCAL_VERSION
+	return Iter_Count(Vehicles);
+	#else
+	new count = 0;
 	for(new i; i <= GetVehiclePoolSize(); i++)
 	{
-		if(IsValidVehicle(i))
-		{
-			count += 1;
-		}
+		if(!IsValidVehicle(i)) continue;
+		count++;
 	}
 	return count;
+	#endif
 }
 
 stock DestroyAllVehicles()
 {
-	new count;
+	new count = 0;
 	for(new i; i <= GetVehiclePoolSize(); i++)
 	{
-		if(IsValidVehicle(i))
-		{
-			DestroyVehicle(i);
-			count++;
-		}
+		if(!IsValidVehicle(i)) continue;
+		DestroyVehicle(i);
+		count++;
 	}
 	return count;
 }
