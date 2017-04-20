@@ -78,6 +78,9 @@ public OnTrailerDetach(trailerid,old_vehicleid)
 public OnPlayerStealVehicle(playerid,targetid,vehicleid)
 */
 
+#tryinclude <YSI\y_hooks>
+
+#define VEHICLE_DAMAGE_ALL						-1
 #define VEHICLE_DAMAGE_PANELS       			0
 #define VEHICLE_DAMAGE_DOORS        			1
 #define VEHICLE_DAMAGE_LIGHTS					2
@@ -133,6 +136,7 @@ static gPlayerEdit[MAX_PLAYERS] = INVALID_VEHICLE_ID;
 static gVehicleAttachedObject[MAX_VEHICLES][MAX_VEHICLE_ATTACHED_OBJECTS];
 static Float:gVehicleFloat[MAX_VEHICLES][10];
 static bool:gVehicleDamage[MAX_VEHICLES][4];
+static gVehicleDamageValue[MAX_VEHICLES][4];
 static gVehicleSpeedCap[MAX_VEHICLES];
 static gVehicleDriver[MAX_VEHICLES];
 static gVehicleTrailer[MAX_VEHICLES];
@@ -744,6 +748,11 @@ stock Vehicle_CreateVehicle(modelid, Float:x, Float:y, Float:z, Float:rotation, 
 	gVehicleFloat[vehicleid][8] = -1.0;
 	gVehicleFloat[vehicleid][9] = 1000.0;
 
+	gVehicleDamageValue[vehicleid][0] = 0;
+	gVehicleDamageValue[vehicleid][1] = 0;
+	gVehicleDamageValue[vehicleid][2] = 0;
+	gVehicleDamageValue[vehicleid][3] = 0;
+
 	return vehicleid;
 }
 #if defined _ALS_CreateVehicle
@@ -834,6 +843,11 @@ stock Vehicle_DestroyVehicle(vehicleid)
 		gVehicleDamage[vehicleid][1] = true;
 		gVehicleDamage[vehicleid][2] = true;
 		gVehicleDamage[vehicleid][3] = true;
+
+		gVehicleDamageValue[vehicleid][0] = 0;
+		gVehicleDamageValue[vehicleid][1] = 0;
+		gVehicleDamageValue[vehicleid][2] = 0;
+		gVehicleDamageValue[vehicleid][3] = 0;
 
 		Vehicle_DeleteProperty(vehicleid, v_interior);
 
@@ -1061,11 +1075,21 @@ public OnVehicleSpawn(vehicleid)
 		gVehicleFloat[vehicleid][3] = angle;
 	}
 
+	gVehicleDamage[vehicleid][0] = true;
+	gVehicleDamage[vehicleid][1] = true;
+	gVehicleDamage[vehicleid][2] = true;
+	gVehicleDamage[vehicleid][3] = true;
+
 	gVehicleFloat[vehicleid][4] = 0.0;
 	gVehicleFloat[vehicleid][5] = 0.0;
 	gVehicleFloat[vehicleid][6] = 0.0;
 	gVehicleFloat[vehicleid][7] = gVehicleFloat[vehicleid][9];
 	gVehicleFloat[vehicleid][8] = -1;
+
+	gVehicleDamageValue[vehicleid][0] = 0;
+	gVehicleDamageValue[vehicleid][1] = 0;
+	gVehicleDamageValue[vehicleid][2] = 0;
+	gVehicleDamageValue[vehicleid][3] = 0;
 
 	SetVehicleHealth(vehicleid,gVehicleFloat[vehicleid][7]);
 
@@ -1163,14 +1187,17 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 
 stock ToggleVehicleDamageUpdate(vehicleid, type, bool:toggle)
 {
-	if(! toggle)
+	if(type == VEHICLE_DAMAGE_ALL)
 	{
-	    if(GetVehicleParams(vehicleid, VEHICLE_PARAMS_ENGINE) == VEHICLE_PARAMS_ON)
-	    {
-	        SetVehicleParams(vehicleid, VEHICLE_PARAMS_ENGINE, VEHICLE_PARAMS_OFF);
-	    }
+		gVehicleDamage[vehicleid][VEHICLE_DAMAGE_PANELS] = toggle;
+		gVehicleDamage[vehicleid][VEHICLE_DAMAGE_DOORS] = toggle;
+		gVehicleDamage[vehicleid][VEHICLE_DAMAGE_LIGHTS] = toggle;
+		//gVehicleDamage[vehicleid][VEHICLE_DAMAGE_TIRES] = toggle;
 	}
-	gVehicleDamage[vehicleid][type] = toggle;
+	else
+	{
+		gVehicleDamage[vehicleid][type] = toggle;
+	}
     return 1;
 }
 
@@ -1214,26 +1241,29 @@ public OnVehicleDamageStatusUpdate(vehicleid, playerid)
 	new panels, doors, lights, tires;
 	GetVehicleDamageStatus(vehicleid, panels, doors, lights, tires);
 
-	if(! IsVehicleDamageToggled(vehicleid, VEHICLE_DAMAGE_PANELS)) UpdateVehicleDamageStatusEx(vehicleid, VEHICLE_DAMAGE_PANELS, 0);
-	if(! IsVehicleDamageToggled(vehicleid, VEHICLE_DAMAGE_DOORS)) UpdateVehicleDamageStatusEx(vehicleid, VEHICLE_DAMAGE_DOORS, 0);
-	if(! IsVehicleDamageToggled(vehicleid, VEHICLE_DAMAGE_LIGHTS)) UpdateVehicleDamageStatusEx(vehicleid, VEHICLE_DAMAGE_LIGHTS, 0);
-	if(! IsVehicleDamageToggled(vehicleid, VEHICLE_DAMAGE_TIRES)) UpdateVehicleDamageStatusEx(vehicleid, VEHICLE_DAMAGE_TIRES, 0);
+	gVehicleDamageValue[vehicleid][VEHICLE_DAMAGE_PANELS] = ((gVehicleDamage[vehicleid][VEHICLE_DAMAGE_PANELS]) ? (panels) : (gVehicleDamageValue[vehicleid][VEHICLE_DAMAGE_PANELS]));
+	gVehicleDamageValue[vehicleid][VEHICLE_DAMAGE_DOORS] = ((gVehicleDamage[vehicleid][VEHICLE_DAMAGE_DOORS]) ? (doors) : (gVehicleDamageValue[vehicleid][VEHICLE_DAMAGE_DOORS]));
+	gVehicleDamageValue[vehicleid][VEHICLE_DAMAGE_LIGHTS] = ((gVehicleDamage[vehicleid][VEHICLE_DAMAGE_LIGHTS]) ? (lights) : (gVehicleDamageValue[vehicleid][VEHICLE_DAMAGE_LIGHTS]));
+	gVehicleDamageValue[vehicleid][VEHICLE_DAMAGE_TIRES] = ((gVehicleDamage[vehicleid][VEHICLE_DAMAGE_TIRES]) ? (tires) : (gVehicleDamageValue[vehicleid][VEHICLE_DAMAGE_TIRES]));
 
-	#if defined V_OnVehicleDamageStatusUpdate
-        return V_OnVehicleDamageStatusUpdate(vehicleid, playerid);
+	UpdateVehicleDamageStatus(vehicleid,gVehicleDamageValue[vehicleid][VEHICLE_DAMAGE_PANELS],gVehicleDamageValue[vehicleid][VEHICLE_DAMAGE_DOORS],gVehicleDamageValue[vehicleid][VEHICLE_DAMAGE_LIGHTS],gVehicleDamageValue[vehicleid][VEHICLE_DAMAGE_TIRES]);
+	
+	#if defined Vehicle_OnVehDmgStatusUpd
+        return Vehicle_OnVehDmgStatusUpd(vehicleid, playerid);
     #else
         return 1;
     #endif
 }
-#if defined V_OnVehicleDamageStatusUpdate
-    forward V_OnVehicleDamageStatusUpdate(vehicleid, playerid);
+
+#if defined Vehicle_OnVehDmgStatusUpd
+    forward Vehicle_OnVehDmgStatusUpd(vehicleid, playerid);
 #endif
-#if defined _ALS_OnVehicleDamageStatusU
+#if defined _ALS_OnVehicleDamageStatusUpd
     #undef OnVehicleDamageStatusUpdate
 #else
-    #define _ALS_OnVehicleDamageStatusU
+    #define _ALS_OnVehicleDamageStatusUpd
 #endif
-#define OnVehicleDamageStatusUpdate V_OnVehicleDamageStatusUpdate
+#define OnVehicleDamageStatusUpdate Vehicle_OnVehDmgStatusUpd
 
 stock encode_lights(light1, light2, light3, light4)
 {
@@ -2359,6 +2389,10 @@ stock Vehicle_RepairVehicle(vehicleid)
 	{
 		gVehicleFloat[vehicleid][7] = gVehicleFloat[vehicleid][9];
 		gVehicleFloat[vehicleid][8] = gVehicleFloat[vehicleid][9];
+		gVehicleDamageValue[vehicleid][0] = 0;
+		gVehicleDamageValue[vehicleid][1] = 0;
+		gVehicleDamageValue[vehicleid][2] = 0;
+		gVehicleDamageValue[vehicleid][3] = 0;
 		return 1;
 	}
 	return 0;
@@ -2369,6 +2403,21 @@ stock Vehicle_RepairVehicle(vehicleid)
     #define _ALS_RepairVehicle
 #endif
 #define RepairVehicle Vehicle_RepairVehicle
+
+stock Vehicle_UpdateDamageStatus(vehicleid, panels, doors, lights, tires)
+{
+	gVehicleDamageValue[vehicleid][VEHICLE_DAMAGE_PANELS] = panels;
+	gVehicleDamageValue[vehicleid][VEHICLE_DAMAGE_DOORS] = doors;
+	gVehicleDamageValue[vehicleid][VEHICLE_DAMAGE_LIGHTS] = lights;
+	gVehicleDamageValue[vehicleid][VEHICLE_DAMAGE_TIRES] = tires;
+	return UpdateVehicleDamageStatus(vehicleid, panels, doors, lights, tires);
+}
+#if defined _ALS_UpdateVehicleDamageStatus
+    #undef UpdateVehicleDamageStatus
+#else
+    #define _ALS_UpdateVehicleDamageStatus
+#endif
+#define UpdateVehicleDamageStatus Vehicle_UpdateDamageStatus
 
 stock SetVehicleMaxHealth(vehicleid, Float:health)
 {
